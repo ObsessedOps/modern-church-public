@@ -100,13 +100,44 @@ function formatCurrency(n: number): string {
   return `$${n.toLocaleString()}`;
 }
 
-export function GraceBriefingSummary({ data }: { data: BriefingData }) {
+// Role-specific briefing titles and focus areas
+const ROLE_BRIEFING: Record<string, { title: string; focus: string }> = {
+  SENIOR_PASTOR: { title: "Grace AI Daily Briefing", focus: "Full church health overview" },
+  CAMPUS_PASTOR: { title: "Campus Briefing", focus: "Your campus at a glance" },
+  YOUTH_PASTOR: { title: "Youth Ministry Briefing", focus: "Student engagement & growth" },
+  KIDS_PASTOR: { title: "Kids Ministry Briefing", focus: "Children's ministry health" },
+  WORSHIP_LEADER: { title: "Worship Team Briefing", focus: "Service planning & team readiness" },
+  GROUPS_DIRECTOR: { title: "Groups Briefing", focus: "Small group health & engagement" },
+  OUTREACH_DIRECTOR: { title: "Outreach Briefing", focus: "Visitor pipeline & follow-up" },
+  ACCOUNTING: { title: "Finance Briefing", focus: "Giving trends & stewardship" },
+  VOLUNTEER_LEADER: { title: "Volunteer Briefing", focus: "Team coverage & burnout risk" },
+  READ_ONLY: { title: "Church Overview", focus: "Key metrics at a glance" },
+};
+
+// Which highlight card IDs each role sees
+const ROLE_HIGHLIGHTS: Record<string, string[]> = {
+  SENIOR_PASTOR: ["attendance", "visitors", "volunteers", "alerts", "pathways"],
+  CAMPUS_PASTOR: ["attendance", "visitors", "volunteers", "alerts", "pathways"],
+  YOUTH_PASTOR: ["attendance", "visitors", "volunteers", "pathways"],
+  KIDS_PASTOR: ["attendance", "volunteers", "pathways"],
+  WORSHIP_LEADER: ["attendance", "volunteers"],
+  GROUPS_DIRECTOR: ["attendance", "visitors", "alerts"],
+  OUTREACH_DIRECTOR: ["visitors", "attendance", "pathways", "alerts"],
+  ACCOUNTING: ["attendance", "alerts"],
+  VOLUNTEER_LEADER: ["volunteers", "attendance", "alerts"],
+  READ_ONLY: ["attendance", "visitors"],
+};
+
+export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: BriefingData; role?: string }) {
   const openGrace = useGracePanelStore((s) => s.open);
 
-  const summary = buildSummary(data);
+  const summary = buildSummary(data, role);
+  const briefingMeta = ROLE_BRIEFING[role] ?? ROLE_BRIEFING.SENIOR_PASTOR;
+  const visibleIds = ROLE_HIGHLIGHTS[role] ?? ROLE_HIGHLIGHTS.SENIOR_PASTOR;
 
-  const highlights = [
+  const allHighlights = [
     {
+      id: "attendance",
       icon: data.attendance.delta >= 0 ? TrendingUp : TrendingDown,
       label: "Attendance",
       value: data.attendance.current > 0 ? `${data.attendance.delta >= 0 ? "+" : ""}${data.attendance.delta}%` : "—",
@@ -114,6 +145,7 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
       color: data.attendance.delta >= 0 ? "emerald" : "rose",
     },
     {
+      id: "visitors",
       icon: UserPlus,
       label: "Visitor Pipeline",
       value: `${data.visitors} guests`,
@@ -121,6 +153,7 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
       color: "blue",
     },
     {
+      id: "volunteers",
       icon: HandHeart,
       label: "Volunteer Coverage",
       value: `${data.volunteerFillRate}% filled`,
@@ -128,6 +161,7 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
       color: data.volunteerFillRate >= 85 ? "emerald" : "amber",
     },
     {
+      id: "alerts",
       icon: AlertTriangle,
       label: "Active Alerts",
       value: String(data.alerts.length),
@@ -135,6 +169,7 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
       color: data.alerts.length >= 3 ? "rose" : data.alerts.length > 0 ? "amber" : "emerald",
     },
     {
+      id: "pathways",
       icon: Workflow,
       label: "Pathways",
       value: `${data.pathways.active} active`,
@@ -142,6 +177,8 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
       color: data.pathways.executionsThisWeek > 0 ? "violet" : "blue",
     },
   ];
+
+  const highlights = allHighlights.filter((h) => visibleIds.includes(h.id));
 
   return (
     <div className="card relative overflow-hidden border border-violet-500/20">
@@ -153,7 +190,7 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-dark-50">
-              Grace AI Daily Briefing
+              {briefingMeta.title}
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-dark-200">
               {summary}
@@ -246,7 +283,7 @@ export function GraceBriefingDetails({ data }: { data: BriefingData }) {
               <p className="text-sm text-slate-500 dark:text-dark-300">All clear — no action items</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="max-h-[280px] space-y-3 overflow-y-auto pr-1">
               {data.alerts.map((alert) => {
                 const style = severityStyles[alert.severity] ?? severityStyles.LOW;
                 const href = alertHrefMap[alert.eventType] ?? "/alerts";
@@ -297,7 +334,7 @@ export function GraceBriefingDetails({ data }: { data: BriefingData }) {
               <p className="text-sm text-slate-500 dark:text-dark-300">No at-risk members</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="max-h-[220px] space-y-2 overflow-y-auto pr-1">
               {data.atRiskMembers.map((member) => (
                 <Link
                   key={member.id}
@@ -403,8 +440,23 @@ export function GraceBriefing({ data }: { data: BriefingData }) {
   );
 }
 
-function buildSummary(data: BriefingData): string {
+function buildSummary(data: BriefingData, role: string): string {
   const parts: string[] = [];
+
+  // Role-specific lead-ins
+  const roleIntros: Record<string, string> = {
+    YOUTH_PASTOR: "Here's what's happening with your students",
+    KIDS_PASTOR: "Kids ministry update",
+    WORSHIP_LEADER: "Worship team status",
+    GROUPS_DIRECTOR: "Small groups pulse",
+    OUTREACH_DIRECTOR: "Outreach & visitor update",
+    ACCOUNTING: "Financial snapshot",
+    VOLUNTEER_LEADER: "Volunteer team status",
+  };
+
+  if (roleIntros[role]) {
+    parts.push(roleIntros[role]);
+  }
 
   if (data.attendance.current > 0) {
     if (data.attendance.delta > 0) {
@@ -416,11 +468,11 @@ function buildSummary(data: BriefingData): string {
     }
   }
 
-  if (data.visitors > 0) {
+  if (data.visitors > 0 && ["SENIOR_PASTOR", "CAMPUS_PASTOR", "OUTREACH_DIRECTOR", "GROUPS_DIRECTOR"].includes(role)) {
     parts.push(`${data.visitors} new visitors`);
   }
 
-  if (data.atRiskMembers.length > 0) {
+  if (data.atRiskMembers.length > 0 && role !== "ACCOUNTING" && role !== "WORSHIP_LEADER") {
     parts.push(`${data.atRiskMembers.length} members need attention`);
   }
 
@@ -428,13 +480,13 @@ function buildSummary(data: BriefingData): string {
     parts.push(`${data.alerts.length} active alert${data.alerts.length > 1 ? "s" : ""}`);
   }
 
-  if (data.volunteerFillRate < 90) {
+  if (data.volunteerFillRate < 90 && ["SENIOR_PASTOR", "CAMPUS_PASTOR", "VOLUNTEER_LEADER", "KIDS_PASTOR", "YOUTH_PASTOR", "WORSHIP_LEADER"].includes(role)) {
     parts.push(`volunteer coverage at ${data.volunteerFillRate}%`);
   }
 
-  if (data.pathways.executionsThisWeek > 0) {
+  if (data.pathways.executionsThisWeek > 0 && role !== "ACCOUNTING" && role !== "WORSHIP_LEADER" && role !== "READ_ONLY") {
     parts.push(`${data.pathways.active} care pathways triggered ${data.pathways.executionsThisWeek} follow-ups this week`);
-  } else if (data.pathways.active > 0) {
+  } else if (data.pathways.active > 0 && ["SENIOR_PASTOR", "CAMPUS_PASTOR", "OUTREACH_DIRECTOR"].includes(role)) {
     parts.push(`${data.pathways.active} care pathways active and monitoring`);
   }
 

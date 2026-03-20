@@ -59,7 +59,7 @@ export function DemoRoleSwitcher({ roles, activeRole, activeRoleLabel }: DemoRol
               )}
             >
               <RotateCcw className="h-3 w-3 shrink-0" />
-              Your Real Role
+              Default Role
               {!activeRole && <Check className="ml-auto h-3 w-3" />}
             </button>
 

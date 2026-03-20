@@ -152,7 +152,7 @@ export default async function CommandCenterPage({
       </div>
 
       {/* ── Grace AI Briefing (Summary + Highlights) ────── */}
-      <GraceBriefingSummary data={briefing} />
+      <GraceBriefingSummary data={briefing} role={session.role} />
 
       {/* ── KPI Cards ────────────────────────────────────── */}
       <KpiSection

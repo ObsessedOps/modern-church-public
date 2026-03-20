@@ -70,7 +70,6 @@ export const navGroups: NavGroup[] = [
     label: "INTELLIGENCE",
     items: [
       { id: "dashboard", label: "Command Center", path: "/", icon: LayoutDashboard },
-      { id: "grace", label: "Grace AI", path: "/grace", icon: Sparkles, color: "grace" },
       { id: "alerts", label: "Alerts", path: "/alerts", icon: Bell, color: "alert" },
       { id: "insights", label: "Insights", path: "/insights", icon: Lightbulb },
       { id: "pathways", label: "Pathways", path: "/pathways", icon: Workflow },

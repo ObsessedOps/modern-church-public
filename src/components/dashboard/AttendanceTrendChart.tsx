@@ -86,6 +86,7 @@ export function AttendanceTrendChart({ data }: AttendanceTrendChartProps) {
             tickLine={false}
           />
           <Tooltip
+            cursor={{ stroke: "rgba(148,163,184,0.15)" }}
             contentStyle={{
               backgroundColor: "rgba(30,31,35,0.95)",
               border: "1px solid rgba(148,163,184,0.15)",
