@@ -32,9 +32,8 @@ export function Topbar({ campuses = [] }: TopbarProps) {
       params.delete("campus");
     }
     const qs = params.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname);
-    router.refresh();
-    setCampusOpen(false);
+    // Full navigation to bypass Next.js client-side router cache
+    window.location.href = qs ? `${pathname}?${qs}` : pathname;
   }
 
   return (
@@ -76,11 +75,11 @@ export function Topbar({ campuses = [] }: TopbarProps) {
         <div className="relative">
           <button
             onClick={() => setCampusOpen(!campusOpen)}
-            className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 dark:border-dark-500 dark:text-dark-200 dark:hover:border-dark-400"
+            className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 px-2 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 dark:border-dark-500 dark:text-dark-200 dark:hover:border-dark-400 sm:px-2.5"
           >
-            <Building2 className="h-3.5 w-3.5 text-slate-400 dark:text-dark-300" />
-            <span>{selectedCampus}</span>
-            <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${campusOpen ? "rotate-180" : ""}`} />
+            <Building2 className="h-4 w-4 shrink-0 text-slate-400 dark:text-dark-300 sm:h-3.5 sm:w-3.5" />
+            <span className="hidden sm:inline">{selectedCampus}</span>
+            <ChevronDown className={`h-3 w-3 shrink-0 text-slate-400 transition-transform ${campusOpen ? "rotate-180" : ""}`} />
           </button>
 
           {campusOpen && (
