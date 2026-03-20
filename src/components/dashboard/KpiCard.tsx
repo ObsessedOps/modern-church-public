@@ -31,6 +31,7 @@ interface KpiCardProps {
   value: string | number;
   delta?: number | null;
   deltaLabel?: string;
+  yoyDelta?: number | null;
   detail?: string;
   icon: string;
   color: string;
@@ -90,6 +91,7 @@ export function KpiCard({
   value,
   delta,
   deltaLabel,
+  yoyDelta,
   detail,
   icon,
   color,
@@ -145,6 +147,24 @@ export function KpiCard({
                 {deltaLabel}
               </span>
             )}
+          </div>
+        )}
+
+        {/* Year-over-Year */}
+        {yoyDelta != null && (
+          <div className="mt-0.5 flex items-center gap-1">
+            <span className="text-[10px] text-slate-400 dark:text-dark-400">vs last year</span>
+            <span
+              className={`text-[10px] font-semibold ${
+                yoyDelta > 0
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : yoyDelta < 0
+                    ? "text-rose-600 dark:text-rose-400"
+                    : "text-slate-500 dark:text-dark-300"
+              }`}
+            >
+              {yoyDelta > 0 ? "↑" : yoyDelta < 0 ? "↓" : "—"} {Math.abs(yoyDelta)}%
+            </span>
           </div>
         )}
 

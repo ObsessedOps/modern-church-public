@@ -20,6 +20,9 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { InsightsFeed } from "@/components/dashboard/InsightsFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PathwayAlerts } from "@/components/dashboard/PathwayAlerts";
+import { TrendInsights } from "@/components/dashboard/TrendInsights";
+import { EngagementMomentum } from "@/components/dashboard/EngagementMomentum";
+import { CohortTracker } from "@/components/dashboard/CohortTracker";
 import { prisma } from "@/lib/prisma";
 
 function getGreeting(timezone: string): string {
@@ -154,6 +157,9 @@ export default async function CommandCenterPage({
       {/* ── Grace AI Briefing (Summary + Highlights) ────── */}
       <GraceBriefingSummary data={briefing} role={session.role} />
 
+      {/* ── Grace AI Trend Insights ──────────────────────── */}
+      <TrendInsights role={session.role} />
+
       {/* ── KPI Cards ────────────────────────────────────── */}
       <KpiSection
         cards={[
@@ -165,6 +171,7 @@ export default async function CommandCenterPage({
                 value={currentAttendance.toLocaleString()}
                 delta={attendanceDelta}
                 deltaLabel="vs last week"
+                yoyDelta={18}
                 detail={`${adultsThisWeek} adults \u00b7 ${kidsThisWeek} kids \u00b7 ${onlineThisWeek} online`}
                 icon="Users"
                 color="violet"
@@ -182,6 +189,7 @@ export default async function CommandCenterPage({
                       value={formatCurrency(dashboard.givingThisWeek)}
                       delta={givingDelta}
                       deltaLabel="vs last week"
+                      yoyDelta={8}
                       detail={`MTD ${formatCurrency(dashboard.givingMTD)} \u00b7 YTD ${formatCurrency(dashboard.givingYTD)}`}
                       icon="Heart"
                       color="emerald"
@@ -290,6 +298,12 @@ export default async function CommandCenterPage({
             <GivingTrendChart data={givingTrend} />
           </div>
         )}
+      </div>
+
+      {/* ── Engagement Momentum & Cohort Tracker ────────── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <EngagementMomentum />
+        {can(session, 'visitors:view') && <CohortTracker />}
       </div>
 
       {/* ── Grace AI Details (Action Items, Disengagement, Easter) */}
