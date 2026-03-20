@@ -19,6 +19,7 @@ const GracePanel = dynamic(() => import("./GracePanel").then((m) => ({ default: 
 const SearchOverlay = dynamic(() => import("./SearchOverlay").then((m) => ({ default: m.SearchOverlay })), { ssr: false });
 const KeyboardShortcuts = dynamic(() => import("./KeyboardShortcuts"), { ssr: false });
 const NavigationShortcuts = dynamic(() => import("./NavigationShortcuts"), { ssr: false });
+const GlobalCompose = dynamic(() => import("@/components/messaging/GlobalCompose").then((m) => ({ default: m.GlobalCompose })), { ssr: false });
 
 function GraceFab() {
   const { isOpen, toggle } = useGracePanelStore();
@@ -80,6 +81,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <SearchOverlay />
       <KeyboardShortcuts />
       <NavigationShortcuts />
+      <GlobalCompose />
       <RouteProgress />
       <ScrollToTop />
     </div>

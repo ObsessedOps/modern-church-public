@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToastStore } from "@/stores/toast";
-import { WORKFLOW_TEMPLATES } from "@/lib/workflows";
+import { WORKFLOW_TEMPLATES } from "@/lib/workflow-templates";
 
 // ─── Types ──────────────────────────────────────────────
 

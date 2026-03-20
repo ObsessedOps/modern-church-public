@@ -15,6 +15,7 @@ import {
   Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MessageActions } from "@/components/messaging/MessageActions";
 
 function formatDate(d: Date | string): string {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -175,20 +176,28 @@ export default async function VisitorsPage() {
                         </span>
                       </div>
 
-                      {/* Contact info */}
-                      <div className="mt-1.5 flex flex-wrap gap-1">
-                        {visitor.email && (
-                          <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-dark-600 dark:text-dark-300">
-                            <Mail className="h-2.5 w-2.5" />
-                            {visitor.email}
-                          </span>
-                        )}
-                        {visitor.phone && (
-                          <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-dark-600 dark:text-dark-300">
-                            <MessageSquare className="h-2.5 w-2.5" />
-                            {visitor.phone}
-                          </span>
-                        )}
+                      {/* Contact info + actions */}
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <div className="flex flex-wrap gap-1">
+                          {visitor.email && (
+                            <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-dark-600 dark:text-dark-300">
+                              <Mail className="h-2.5 w-2.5" />
+                              {visitor.email}
+                            </span>
+                          )}
+                          {visitor.phone && (
+                            <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-dark-600 dark:text-dark-300">
+                              <MessageSquare className="h-2.5 w-2.5" />
+                              {visitor.phone}
+                            </span>
+                          )}
+                        </div>
+                        <MessageActions
+                          name={`${visitor.firstName} ${visitor.lastName}`}
+                          email={visitor.email}
+                          phone={visitor.phone}
+                          context={`Visitor: ${visitor.firstName} ${visitor.lastName}, Stage: ${stage.label}, Visits: ${visitor._count.attendanceRecords}`}
+                        />
                       </div>
 
                       {/* Workflow status */}

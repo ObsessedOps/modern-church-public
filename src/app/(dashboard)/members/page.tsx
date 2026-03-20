@@ -4,6 +4,7 @@ import { AccessDenied } from "@/components/ui/AccessDenied";
 import { getMembers } from "@/lib/queries";
 import { Users, Search } from "lucide-react";
 import Link from "next/link";
+import { MessageActions } from "@/components/messaging/MessageActions";
 
 const STATUS_COLORS: Record<string, string> = {
   VISITOR: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
@@ -116,6 +117,9 @@ export default async function CongregationPage() {
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
                     Last Activity
                   </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-dark-600">
@@ -159,6 +163,14 @@ export default async function CongregationPage() {
                     </td>
                     <td className="px-4 py-3 text-slate-500 dark:text-dark-300">
                       {formatDate(member.lastActivityAt)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <MessageActions
+                        name={`${member.firstName} ${member.lastName}`}
+                        email={member.email}
+                        phone={member.phone}
+                        context={`Member: ${member.firstName} ${member.lastName}, Status: ${member.membershipStatus}, Engagement: ${member.engagementTier}`}
+                      />
                     </td>
                   </tr>
                 ))}
