@@ -1,11 +1,13 @@
 import { getServerSession } from "@/lib/server-auth";
 import { can } from "@/lib/rbac";
 import { AccessDenied } from "@/components/ui/AccessDenied";
+import { prisma } from "@/lib/prisma";
 import {
   getDashboardData,
   getAttendanceTrend,
   getGivingTrend,
   getGrowthTrackData,
+  getBriefingData,
 } from "@/lib/queries";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { AttendanceTrendChart } from "@/components/dashboard/AttendanceTrendChart";
@@ -45,20 +47,46 @@ function computeDelta(current: number, previous: number): number | null {
   return Math.round(((current - previous) / previous) * 100 * 10) / 10;
 }
 
-export default async function CommandCenterPage() {
+// Campus slug → ID resolution
+const CAMPUS_SLUGS: Record<string, string> = {
+  downtown: "Downtown",
+  westside: "Westside",
+  north: "North Campus",
+  online: "Online",
+};
+
+async function resolveCampusId(churchId: string, slug: string | undefined): Promise<string | undefined> {
+  if (!slug) return undefined;
+  const name = CAMPUS_SLUGS[slug];
+  if (!name) return undefined;
+  const campus = await prisma.campus.findFirst({
+    where: { churchId, name },
+    select: { id: true },
+  });
+  return campus?.id ?? undefined;
+}
+
+export default async function CommandCenterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ campus?: string }>;
+}) {
   const session = await getServerSession();
   if (!can(session, 'dashboard:view')) return <AccessDenied />;
   const { churchId } = session;
+  const params = await searchParams;
+  const campusId = await resolveCampusId(churchId, params.campus);
 
   const canSeeGiving = can(session, 'giving:view');
   const canSeeGrowthTrack = can(session, 'growth-track:view');
 
   // Parallel fetch
-  const [dashboard, attendanceTrend, givingTrend, growthTrack] = await Promise.all([
-    getDashboardData(churchId),
-    getAttendanceTrend(churchId),
-    canSeeGiving ? getGivingTrend(churchId) : Promise.resolve([]),
+  const [dashboard, attendanceTrend, givingTrend, growthTrack, briefing] = await Promise.all([
+    getDashboardData(churchId, campusId),
+    getAttendanceTrend(churchId, campusId),
+    canSeeGiving ? getGivingTrend(churchId, campusId) : Promise.resolve([]),
     canSeeGrowthTrack ? getGrowthTrackData(churchId) : Promise.resolve(null),
+    getBriefingData(churchId),
   ]);
 
   // ── Compute KPI values ──────────────────────────────────
@@ -126,6 +154,7 @@ export default async function CommandCenterPage() {
           detail={`${adultsThisWeek} adults \u00b7 ${kidsThisWeek} kids \u00b7 ${onlineThisWeek} online`}
           icon="Users"
           color="violet"
+          href="/attendance"
         />
         {canSeeGiving && (
           <KpiCard
@@ -136,6 +165,7 @@ export default async function CommandCenterPage() {
             detail={`MTD ${formatCurrency(dashboard.givingMTD)} \u00b7 YTD ${formatCurrency(dashboard.givingYTD)}`}
             icon="Heart"
             color="emerald"
+            href="/giving"
           />
         )}
         {can(session, 'visitors:view') && (
@@ -146,6 +176,7 @@ export default async function CommandCenterPage() {
             detail="This week"
             icon="UserPlus"
             color="blue"
+            href="/visitors"
           />
         )}
         <KpiCard
@@ -155,6 +186,7 @@ export default async function CommandCenterPage() {
           detail="Month to date"
           icon="Cross"
           color="purple"
+          href="/members"
         />
         {can(session, 'volunteers:view') && (
           <KpiCard
@@ -164,6 +196,7 @@ export default async function CommandCenterPage() {
             detail="Serving positions filled"
             icon="HandHeart"
             color="amber"
+            href="/volunteers"
           />
         )}
         {can(session, 'groups:view') && (
@@ -174,6 +207,7 @@ export default async function CommandCenterPage() {
             detail={`${dashboard.activeMemberCount.toLocaleString()} active members`}
             icon="UsersRound"
             color="cyan"
+            href="/groups"
           />
         )}
         {canSeeGrowthTrack && growthTrack && (
@@ -184,12 +218,13 @@ export default async function CommandCenterPage() {
             detail={`${growthTrack.completedCount} completed · ${growthTrack.stalledCount} stalled`}
             icon="Footprints"
             color="teal"
+            href="/growth-track"
           />
         )}
       </div>
 
       {/* ── Row 2: Grace AI Briefing ────────────────────── */}
-      <GraceBriefing />
+      <GraceBriefing data={briefing} />
 
       {/* ── Row 3: Charts ─────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">

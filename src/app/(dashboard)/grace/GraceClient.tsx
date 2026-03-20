@@ -13,7 +13,7 @@ interface Message {
 }
 
 const suggestedPrompts = [
-  { icon: TrendingUp, text: "Show giving trends across all campuses this quarter" },
+  { icon: TrendingUp, text: "Who should I check in on this week?" },
   { icon: Users, text: "Which volunteer teams are understaffed or have burnout risk?" },
   { icon: AlertTriangle, text: "Flag members showing signs of disengagement" },
   { icon: Calendar, text: "What life events have been recorded recently?" },

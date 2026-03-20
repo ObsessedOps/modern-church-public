@@ -15,7 +15,7 @@ interface Message {
 }
 
 const suggestedPrompts = [
-  { icon: TrendingUp, text: "Show giving trends this quarter" },
+  { icon: TrendingUp, text: "Who should I check in on this week?" },
   { icon: Users, text: "Which teams have burnout risk?" },
   { icon: AlertTriangle, text: "Flag disengaging members" },
   { icon: Calendar, text: "Recent life events?" },

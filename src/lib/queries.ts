@@ -4,7 +4,7 @@ import { IntegrationType } from "@/generated/prisma/client";
 
 // ─── Dashboard ───────────────────────────────────────────
 
-export async function getDashboardData(churchId: string) {
+export async function getDashboardData(churchId: string, campusId?: string) {
   const now = new Date();
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay());
@@ -12,6 +12,10 @@ export async function getDashboardData(churchId: string) {
 
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+  // Campus-aware filter helpers
+  const memberWhere = { churchId, ...(campusId && { primaryCampusId: campusId }) };
+  const contributionCampusFilter = campusId ? { member: { primaryCampusId: campusId } } : {};
 
   const [
     memberCount,
@@ -28,12 +32,12 @@ export async function getDashboardData(churchId: string) {
     recentAuditLog,
   ] = await Promise.all([
     // Total member count
-    prisma.member.count({ where: { churchId } }),
+    prisma.member.count({ where: memberWhere }),
 
     // Active members (MEMBER or ATTENDEE status)
     prisma.member.count({
       where: {
-        churchId,
+        ...memberWhere,
         membershipStatus: { in: ["MEMBER", "ATTENDEE"] },
       },
     }),
@@ -42,6 +46,7 @@ export async function getDashboardData(churchId: string) {
     prisma.serviceSummary.findMany({
       where: {
         churchId,
+        ...(campusId && { campusId }),
         serviceDate: { gte: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000) },
       },
       orderBy: { serviceDate: "desc" },
@@ -52,6 +57,7 @@ export async function getDashboardData(churchId: string) {
       where: {
         churchId,
         transactionDate: { gte: startOfWeek },
+        ...contributionCampusFilter,
       },
       _sum: { amount: true },
     }),
@@ -61,6 +67,7 @@ export async function getDashboardData(churchId: string) {
       where: {
         churchId,
         transactionDate: { gte: startOfMonth },
+        ...contributionCampusFilter,
       },
       _sum: { amount: true },
     }),
@@ -70,6 +77,7 @@ export async function getDashboardData(churchId: string) {
       where: {
         churchId,
         transactionDate: { gte: startOfYear },
+        ...contributionCampusFilter,
       },
       _sum: { amount: true },
     }),
@@ -83,16 +91,16 @@ export async function getDashboardData(churchId: string) {
 
     // Recent life events, top 5
     prisma.lifeEvent.findMany({
-      where: { churchId },
+      where: { churchId, ...(campusId && { member: { primaryCampusId: campusId } }) },
       orderBy: { date: "desc" },
       take: 5,
-      include: { member: { select: { firstName: true, lastName: true } } },
+      include: { member: { select: { id: true, firstName: true, lastName: true } } },
     }),
 
     // Visitors created this week
     prisma.member.count({
       where: {
-        churchId,
+        ...memberWhere,
         membershipStatus: "VISITOR",
         createdAt: { gte: startOfWeek },
       },
@@ -100,7 +108,7 @@ export async function getDashboardData(churchId: string) {
 
     // Active group count
     prisma.group.count({
-      where: { churchId, isActive: true },
+      where: { churchId, isActive: true, ...(campusId && { campusId }) },
     }),
 
     // Active volunteer positions
@@ -108,6 +116,7 @@ export async function getDashboardData(churchId: string) {
       where: {
         status: "ACTIVE",
         team: { churchId },
+        ...(campusId && { member: { primaryCampusId: campusId } }),
       },
     }),
 
@@ -174,7 +183,7 @@ export async function getAttendanceTrend(churchId: string, campusId?: string) {
 
 // ─── Giving Trend ────────────────────────────────────────
 
-export async function getGivingTrend(churchId: string) {
+export async function getGivingTrend(churchId: string, campusId?: string) {
   const twelveMonthsAgo = new Date();
   twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
@@ -182,6 +191,7 @@ export async function getGivingTrend(churchId: string) {
     where: {
       churchId,
       transactionDate: { gte: twelveMonthsAgo },
+      ...(campusId && { member: { primaryCampusId: campusId } }),
     },
     orderBy: { transactionDate: "asc" },
   });
@@ -543,4 +553,113 @@ export async function getEngagementDistribution(churchId: string) {
     _count: true,
   });
   return result.map((r) => ({ tier: r.engagementTier, count: r._count }));
+}
+
+// ─── Grace Briefing Data ───────────────────────────────
+
+export async function getBriefingData(churchId: string) {
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const [
+    currentWeekServices,
+    priorWeekServices,
+    givingThisWeek,
+    visitorCount,
+    totalVolunteerPositions,
+    filledPositions,
+    activeAlerts,
+    atRiskMembers,
+  ] = await Promise.all([
+    prisma.serviceSummary.findMany({
+      where: { churchId, serviceDate: { gte: oneWeekAgo } },
+    }),
+    prisma.serviceSummary.findMany({
+      where: { churchId, serviceDate: { gte: twoWeeksAgo, lt: oneWeekAgo } },
+    }),
+    prisma.contribution.aggregate({
+      where: { churchId, transactionDate: { gte: startOfWeek } },
+      _sum: { amount: true },
+    }),
+    prisma.member.count({
+      where: { churchId, membershipStatus: "VISITOR", createdAt: { gte: oneWeekAgo } },
+    }),
+    prisma.volunteerPosition.count({
+      where: { team: { churchId } },
+    }),
+    prisma.volunteerPosition.count({
+      where: { team: { churchId }, status: "ACTIVE" },
+    }),
+    prisma.alertEvent.findMany({
+      where: { churchId, dismissed: false },
+      orderBy: { detectedAt: "desc" },
+      take: 5,
+      include: {
+        memberImpacts: {
+          include: { member: { select: { firstName: true, lastName: true } } },
+          take: 5,
+        },
+      },
+    }),
+    prisma.member.findMany({
+      where: {
+        churchId,
+        engagementTier: { in: ["AT_RISK", "DISENGAGED"] },
+      },
+      orderBy: { engagementScore: "asc" },
+      take: 5,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        engagementTier: true,
+        lastActivityAt: true,
+        primaryCampus: { select: { name: true } },
+      },
+    }),
+  ]);
+
+  // Compute attendance metrics
+  const currentAttendance = currentWeekServices.reduce((sum, s) => sum + s.totalCount, 0);
+  const priorAttendance = priorWeekServices.reduce((sum, s) => sum + s.totalCount, 0);
+  const attendanceDelta = priorAttendance > 0
+    ? Math.round(((currentAttendance - priorAttendance) / priorAttendance) * 1000) / 10
+    : 0;
+
+  const fillRate = totalVolunteerPositions > 0
+    ? Math.round((filledPositions / totalVolunteerPositions) * 100)
+    : 100;
+
+  return {
+    attendance: {
+      current: currentAttendance,
+      delta: attendanceDelta,
+    },
+    giving: givingThisWeek._sum.amount ?? 0,
+    visitors: visitorCount,
+    volunteerFillRate: fillRate,
+    filledPositions,
+    totalPositions: totalVolunteerPositions,
+    alerts: activeAlerts.map((a) => ({
+      id: a.id,
+      eventType: a.eventType,
+      headline: a.headline,
+      summary: a.summary,
+      severity: a.severity,
+      memberNames: a.memberImpacts.map((m) => `${m.member.firstName} ${m.member.lastName}`),
+    })),
+    atRiskMembers: atRiskMembers.map((m) => ({
+      id: m.id,
+      name: `${m.firstName} ${m.lastName}`,
+      campus: m.primaryCampus.name,
+      tier: m.engagementTier,
+      weeksAbsent: m.lastActivityAt
+        ? Math.floor((now.getTime() - new Date(m.lastActivityAt).getTime()) / (7 * 24 * 60 * 60 * 1000))
+        : null,
+    })),
+  };
 }

@@ -79,7 +79,7 @@ export function CampusComparison() {
             {campuses.map((campus) => (
               <tr
                 key={campus.name}
-                className="border-b border-slate-50 last:border-b-0 dark:border-dark-600"
+                className="border-b border-slate-50 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50 dark:border-dark-600 dark:hover:bg-dark-700"
               >
                 <td className="py-2.5 text-xs font-medium text-slate-800 dark:text-dark-100">
                   {campus.name}

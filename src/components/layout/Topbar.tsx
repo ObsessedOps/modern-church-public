@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Menu, Search, Sparkles, Sun, Moon, ChevronDown, Building2 } from "lucide-react";
 import { useSidebarStore } from "@/stores/sidebar";
 import { useGracePanelStore } from "@/stores/grace-panel";
@@ -8,14 +9,36 @@ import { useThemeStore } from "@/stores/theme";
 import NotificationsDropdown from "@/components/layout/NotificationsDropdown";
 import UserMenu from "@/components/layout/UserMenu";
 
-const campuses = ["All Campuses", "Downtown", "Westside", "North Campus", "Online"];
+const campuses = [
+  { label: "All Campuses", id: "" },
+  { label: "Downtown", id: "downtown" },
+  { label: "Westside", id: "westside" },
+  { label: "North Campus", id: "north" },
+  { label: "Online", id: "online" },
+];
 
 export function Topbar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { toggleMobile, isOpen } = useSidebarStore();
   const toggleGrace = useGracePanelStore((s) => s.toggle);
   const { mode, toggle: toggleTheme } = useThemeStore();
-  const [selectedCampus, setSelectedCampus] = useState("All Campuses");
+  const currentCampusId = searchParams.get("campus") ?? "";
+  const selectedCampus = campuses.find((c) => c.id === currentCampusId)?.label ?? "All Campuses";
   const [campusOpen, setCampusOpen] = useState(false);
+
+  function selectCampus(campusId: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (campusId) {
+      params.set("campus", campusId);
+    } else {
+      params.delete("campus");
+    }
+    const qs = params.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
+    setCampusOpen(false);
+  }
 
   return (
     <>
@@ -72,18 +95,15 @@ export function Topbar() {
               <div className="absolute right-0 top-full z-50 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800">
                 {campuses.map((campus) => (
                   <button
-                    key={campus}
-                    onClick={() => {
-                      setSelectedCampus(campus);
-                      setCampusOpen(false);
-                    }}
+                    key={campus.id}
+                    onClick={() => selectCampus(campus.id)}
                     className={`flex w-full items-center px-3 py-2 text-left text-xs transition-colors ${
-                      selectedCampus === campus
+                      currentCampusId === campus.id
                         ? "bg-violet-50 font-medium text-violet-600 dark:bg-violet-600/10 dark:text-violet-400"
                         : "text-slate-600 hover:bg-slate-50 dark:text-dark-200 dark:hover:bg-dark-700"
                     }`}
                   >
-                    {campus}
+                    {campus.label}
                   </button>
                 ))}
               </div>

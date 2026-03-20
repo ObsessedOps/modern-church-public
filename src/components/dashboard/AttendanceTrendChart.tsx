@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   AreaChart,
   Area,
@@ -48,9 +49,14 @@ export function AttendanceTrendChart({ data }: AttendanceTrendChartProps) {
 
   return (
     <div className="card">
-      <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-dark-50">
-        Attendance Trend
-      </h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+          Attendance Trend
+        </h3>
+        <Link href="/attendance" className="text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300">
+          View details →
+        </Link>
+      </div>
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
           <defs>

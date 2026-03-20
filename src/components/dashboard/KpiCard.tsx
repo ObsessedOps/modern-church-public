@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import {
   TrendingUp,
   TrendingDown,
   Minus,
+  ChevronRight,
   Users,
   Heart,
   UserPlus,
@@ -32,6 +34,7 @@ interface KpiCardProps {
   detail?: string;
   icon: string;
   color: string;
+  href?: string;
 }
 
 const colorMap: Record<string, { border: string; bg: string; text: string }> = {
@@ -90,14 +93,15 @@ export function KpiCard({
   detail,
   icon,
   color,
+  href,
 }: KpiCardProps) {
   const colors = colorMap[color] ?? colorMap.violet;
   const Icon = iconMap[icon] ?? Users;
 
-  return (
-    <div
-      className={`card border-l-4 ${colors.border} flex items-start gap-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5`}
-    >
+  const cardClassName = `card border-l-4 ${colors.border} flex items-start gap-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 ${href ? "cursor-pointer group" : ""}`;
+
+  const content = (
+    <>
       {/* Icon */}
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${colors.bg}`}
@@ -106,7 +110,7 @@ export function KpiCard({
       </div>
 
       {/* Content */}
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 relative">
         <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-dark-300">
           {label}
         </p>
@@ -150,7 +154,16 @@ export function KpiCard({
             {detail}
           </p>
         )}
+        {href && (
+          <ChevronRight className="absolute right-0 top-0 h-4 w-4 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-dark-400" />
+        )}
       </div>
-    </div>
+    </>
   );
+
+  if (href) {
+    return <Link href={href} className={cardClassName}>{content}</Link>;
+  }
+
+  return <div className={cardClassName}>{content}</div>;
 }

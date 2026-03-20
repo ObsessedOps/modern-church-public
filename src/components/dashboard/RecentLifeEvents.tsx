@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Heart, ChevronRight } from "lucide-react";
 import type { EventType } from "@/generated/prisma/enums";
 
@@ -9,6 +10,7 @@ interface LifeEvent {
   date: Date;
   description: string | null;
   member: {
+    id: string;
     firstName: string;
     lastName: string;
   };
@@ -72,8 +74,9 @@ export function RecentLifeEvents({ lifeEvents }: RecentLifeEventsProps) {
             const colorClass =
               eventTypeColors[event.type] ?? eventTypeColors.OTHER;
             return (
-              <div
+              <Link
                 key={event.id}
+                href={`/members/${event.member.id}`}
                 className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 transition-colors hover:bg-slate-50 dark:border-dark-500 dark:hover:bg-dark-600"
               >
                 <div className="min-w-0 flex-1">
@@ -90,7 +93,7 @@ export function RecentLifeEvents({ lifeEvents }: RecentLifeEventsProps) {
                   </div>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 dark:text-dark-400" />
-              </div>
+              </Link>
             );
           })}
         </div>

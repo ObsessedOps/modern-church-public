@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   BarChart,
   Bar,
@@ -50,9 +51,14 @@ export function GivingTrendChart({ data }: GivingTrendChartProps) {
 
   return (
     <div className="card">
-      <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-dark-50">
-        Giving Trend
-      </h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+          Giving Trend
+        </h3>
+        <Link href="/giving" className="text-xs font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300">
+          View details →
+        </Link>
+      </div>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <defs>
