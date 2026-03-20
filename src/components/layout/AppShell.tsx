@@ -26,7 +26,7 @@ function GraceFab() {
   return (
     <button
       onClick={toggle}
-      className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-700 hover:shadow-xl hover:shadow-violet-600/40 active:scale-95 lg:bottom-8 lg:right-8"
+      className="fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-700 hover:shadow-xl hover:shadow-violet-600/40 active:scale-95 lg:bottom-8 lg:right-8"
       aria-label="Open Grace AI"
     >
       <Sparkles className="h-6 w-6" />
@@ -51,7 +51,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Topbar />
       <main
         id="main-content"
-        className="pb-20 transition-all duration-200 ease-out lg:pb-6"
+        className="pb-24 transition-all duration-200 ease-out lg:pb-6"
         style={{
           marginLeft: `var(--sidebar-ml, 0px)`,
         }}

@@ -98,7 +98,7 @@ export function KpiCard({
   const colors = colorMap[color] ?? colorMap.violet;
   const Icon = iconMap[icon] ?? Users;
 
-  const cardClassName = `card border-l-4 ${colors.border} flex items-start gap-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 ${href ? "cursor-pointer group" : ""}`;
+  const cardClassName = `card border-l-4 ${colors.border} flex items-start gap-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] ${href ? "cursor-pointer group" : ""}`;
 
   const content = (
     <>

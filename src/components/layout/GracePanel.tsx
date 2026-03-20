@@ -285,7 +285,7 @@ function PanelContent({
       </div>
 
       {/* Input */}
-      <div className="border-t border-slate-200 p-4 dark:border-dark-600">
+      <div className="border-t border-slate-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] dark:border-dark-600">
         <form
           onSubmit={(e) => {
             e.preventDefault();

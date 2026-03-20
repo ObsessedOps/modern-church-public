@@ -30,7 +30,7 @@ function NavLink({
       title={collapsed ? item.label : undefined}
       className={cn(
         "group flex items-center rounded-lg text-sm font-medium tracking-wide transition-colors",
-        collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2",
+        collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2.5",
         isActive
           ? isGrace
             ? "bg-violet-600/10 text-violet-600 dark:text-violet-400"

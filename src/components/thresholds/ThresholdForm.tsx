@@ -64,7 +64,7 @@ export function ThresholdForm({ onClose, onCreated }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-dark-600 dark:bg-dark-800">
+      <div className="mx-4 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-dark-600 dark:bg-dark-800">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-dark-100">
             New Threshold

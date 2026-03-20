@@ -61,7 +61,7 @@ export function InsightComposer({ staff, onClose, onCreated }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-dark-600 dark:bg-dark-800">
+      <div className="mx-4 w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-dark-600 dark:bg-dark-800">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-dark-100">Share Insight</h2>
           <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700">

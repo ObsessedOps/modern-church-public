@@ -98,7 +98,7 @@ function formatCurrency(n: number): string {
   return `$${n.toLocaleString()}`;
 }
 
-export function GraceBriefing({ data }: { data: BriefingData }) {
+export function GraceBriefingSummary({ data }: { data: BriefingData }) {
   const openGrace = useGracePanelStore((s) => s.open);
 
   const summary = buildSummary(data);
@@ -135,83 +135,86 @@ export function GraceBriefing({ data }: { data: BriefingData }) {
   ];
 
   return (
-    <div className="space-y-4">
-      {/* ── Briefing Header ── */}
-      <div className="card relative overflow-hidden border border-violet-500/20">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-600 via-purple-500 to-fuchsia-500" />
-        <div className="flex items-start justify-between gap-4 pt-1">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-600">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-dark-50">
-                Grace AI Daily Briefing
-              </h2>
-              <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-dark-200">
-                {summary}
-              </p>
-            </div>
+    <div className="card relative overflow-hidden border border-violet-500/20">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-600 via-purple-500 to-fuchsia-500" />
+      <div className="flex items-start justify-between gap-4 pt-1">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-600">
+            <Sparkles className="h-5 w-5 text-white" />
           </div>
-          <button
-            onClick={openGrace}
-            className="shrink-0 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-violet-700"
-          >
-            Ask Grace
-          </button>
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-dark-50">
+              Grace AI Daily Briefing
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-dark-200">
+              {summary}
+            </p>
+          </div>
         </div>
-
-        {/* Highlight Cards */}
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {highlights.map((h) => {
-            const Icon = h.icon;
-            return (
-              <div
-                key={h.label}
-                className={cn(
-                  "rounded-xl border p-3 transition-colors",
-                  h.color === "emerald" && "border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10",
-                  h.color === "blue" && "border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10",
-                  h.color === "amber" && "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10",
-                  h.color === "rose" && "border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10"
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon
-                    className={cn(
-                      "h-4 w-4",
-                      h.color === "emerald" && "text-emerald-500",
-                      h.color === "blue" && "text-blue-500",
-                      h.color === "amber" && "text-amber-500",
-                      h.color === "rose" && "text-rose-500"
-                    )}
-                  />
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
-                    {h.label}
-                  </span>
-                </div>
-                <p
-                  className={cn(
-                    "mt-1.5 text-xl font-bold",
-                    h.color === "emerald" && "text-emerald-600 dark:text-emerald-400",
-                    h.color === "blue" && "text-blue-600 dark:text-blue-400",
-                    h.color === "amber" && "text-amber-600 dark:text-amber-400",
-                    h.color === "rose" && "text-rose-600 dark:text-rose-400"
-                  )}
-                >
-                  {h.value}
-                </p>
-                <p className="mt-1 text-xs text-slate-600 dark:text-dark-200">
-                  {h.detail}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+        <button
+          onClick={openGrace}
+          className="shrink-0 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-violet-700"
+        >
+          Ask Grace
+        </button>
       </div>
 
-      {/* ── Action Items + Disengagement + Easter ── */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* Highlight Cards */}
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {highlights.map((h) => {
+          const Icon = h.icon;
+          return (
+            <div
+              key={h.label}
+              className={cn(
+                "rounded-xl border p-3 transition-colors",
+                h.color === "emerald" && "border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10",
+                h.color === "blue" && "border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10",
+                h.color === "amber" && "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10",
+                h.color === "rose" && "border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Icon
+                  className={cn(
+                    "h-4 w-4",
+                    h.color === "emerald" && "text-emerald-500",
+                    h.color === "blue" && "text-blue-500",
+                    h.color === "amber" && "text-amber-500",
+                    h.color === "rose" && "text-rose-500"
+                  )}
+                />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
+                  {h.label}
+                </span>
+              </div>
+              <p
+                className={cn(
+                  "mt-1.5 text-xl font-bold",
+                  h.color === "emerald" && "text-emerald-600 dark:text-emerald-400",
+                  h.color === "blue" && "text-blue-600 dark:text-blue-400",
+                  h.color === "amber" && "text-amber-600 dark:text-amber-400",
+                  h.color === "rose" && "text-rose-600 dark:text-rose-400"
+                )}
+              >
+                {h.value}
+              </p>
+              <p className="mt-1 text-xs text-slate-600 dark:text-dark-200">
+                {h.detail}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function GraceBriefingDetails({ data }: { data: BriefingData }) {
+  const openGrace = useGracePanelStore((s) => s.open);
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Action Items (from real alerts) */}
         <div className="card lg:col-span-1">
           <div className="mb-3 flex items-center gap-2">
@@ -375,6 +378,15 @@ export function GraceBriefing({ data }: { data: BriefingData }) {
           </div>
         </div>
       </div>
+  );
+}
+
+/** @deprecated Use GraceBriefingSummary + GraceBriefingDetails instead */
+export function GraceBriefing({ data }: { data: BriefingData }) {
+  return (
+    <div className="space-y-4">
+      <GraceBriefingSummary data={data} />
+      <GraceBriefingDetails data={data} />
     </div>
   );
 }

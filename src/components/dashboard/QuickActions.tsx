@@ -39,7 +39,7 @@ export function QuickActions() {
         <button
           key={action}
           onClick={() => handleAction(action, label)}
-          className="btn btn-outline gap-2 border-violet-200 text-violet-700 hover:bg-violet-50 dark:border-violet-500/30 dark:text-violet-400 dark:hover:bg-violet-500/10"
+          className="btn btn-outline min-h-[44px] gap-2 border-violet-200 text-violet-700 hover:bg-violet-50 active:scale-95 dark:border-violet-500/30 dark:text-violet-400 dark:hover:bg-violet-500/10"
         >
           <Icon className="h-4 w-4" />
           <span className="text-xs font-medium">{label}</span>

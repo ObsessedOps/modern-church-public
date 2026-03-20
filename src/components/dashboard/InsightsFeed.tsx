@@ -74,7 +74,7 @@ export function InsightsFeed() {
             <Link
               key={insight.id}
               href="/insights"
-              className="flex items-start gap-3 px-5 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-dark-700/50"
+              className="flex items-start gap-3 px-5 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 dark:hover:bg-dark-700/50 dark:active:bg-dark-700"
             >
               <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${config.bg}`}>
                 <Icon className={`h-3.5 w-3.5 ${config.color}`} />

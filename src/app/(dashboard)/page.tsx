@@ -12,7 +12,7 @@ import {
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { AttendanceTrendChart } from "@/components/dashboard/AttendanceTrendChart";
 import { GivingTrendChart } from "@/components/dashboard/GivingTrendChart";
-import { GraceBriefing } from "@/components/dashboard/GraceBriefing";
+import { GraceBriefingSummary, GraceBriefingDetails } from "@/components/dashboard/GraceBriefing";
 import { AlertFeed } from "@/components/dashboard/AlertFeed";
 import { RecentLifeEvents } from "@/components/dashboard/RecentLifeEvents";
 import { CampusComparison } from "@/components/dashboard/CampusComparison";
@@ -145,8 +145,8 @@ export default async function CommandCenterPage({
         <QuickActions />
       </div>
 
-      {/* ── Grace AI Briefing ────────────────────────────── */}
-      <GraceBriefing data={briefing} />
+      {/* ── Grace AI Briefing (Summary + Highlights) ────── */}
+      <GraceBriefingSummary data={briefing} />
 
       {/* ── KPI Cards ────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -238,6 +238,9 @@ export default async function CommandCenterPage({
           </div>
         )}
       </div>
+
+      {/* ── Grace AI Details (Action Items, Disengagement, Easter) */}
+      <GraceBriefingDetails data={briefing} />
 
       {/* ── Alerts, Insights & Life Events ─────────────────── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

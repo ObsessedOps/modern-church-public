@@ -120,7 +120,7 @@ export default function NotificationsDropdown() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-dark-600 dark:bg-dark-800">
+        <div className="fixed inset-x-4 top-[var(--topbar-height)] z-50 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-dark-600 dark:bg-dark-800 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-dark-600">
             <h3 className="text-sm font-semibold text-slate-800 dark:text-dark-100">
               Notifications

@@ -70,7 +70,7 @@ export function InsightDetail({ insight, onClose, onUpdate }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-dark-600 dark:bg-dark-800">
+      <div className="mx-4 w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-dark-600 dark:bg-dark-800">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             {insight.source === "AI_GENERATED" ? (
