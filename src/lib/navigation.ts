@@ -19,6 +19,7 @@ import {
   Plug,
   Footprints,
   Workflow,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +31,7 @@ export interface NavItem {
   badge?: string;
   color?: string;
   isStub?: boolean;
+  hidden?: boolean;
 }
 
 export interface NavGroup {
@@ -47,6 +49,7 @@ export const navigation: NavItem[] = [
   { id: "members", label: "Members", path: "/members", icon: Users },
   { id: "groups", label: "Groups", path: "/groups", icon: UsersRound },
   { id: "visitors", label: "Visitors", path: "/visitors", icon: UserPlus },
+  { id: "connect-cards", label: "Connect Cards", path: "/connect-cards", icon: ClipboardList },
   { id: "worship", label: "Worship", path: "/worship", icon: Music },
   { id: "giving", label: "Giving", path: "/giving", icon: Heart },
   { id: "volunteers", label: "Volunteers", path: "/volunteers", icon: HandHeart },
@@ -55,7 +58,7 @@ export const navigation: NavItem[] = [
   { id: "communications", label: "Communications", path: "/communications", icon: MessageSquare },
   { id: "analytics", label: "Analytics", path: "/analytics", icon: BarChart3 },
   { id: "staff", label: "Staff", path: "/staff", icon: UserCog },
-  { id: "integrations", label: "Integrations", path: "/integrations", icon: Plug },
+  { id: "integrations", label: "Integrations", path: "/integrations", icon: Plug, hidden: true },
   { id: "compliance", label: "Compliance", path: "/compliance", icon: ShieldCheck },
   { id: "settings", label: "Settings", path: "/settings", icon: Settings },
   { id: "growth-track", label: "Growth Track", path: "/growth-track", icon: Footprints },
@@ -79,6 +82,7 @@ export const navGroups: NavGroup[] = [
       { id: "members", label: "Members", path: "/members", icon: Users },
       { id: "groups", label: "Groups", path: "/groups", icon: UsersRound },
       { id: "visitors", label: "Visitors", path: "/visitors", icon: UserPlus },
+      { id: "connect-cards", label: "Connect Cards", path: "/connect-cards", icon: ClipboardList },
       { id: "growth-track", label: "Growth Track", path: "/growth-track", icon: Footprints },
     ],
   },
@@ -98,7 +102,7 @@ export const navGroups: NavGroup[] = [
       { id: "communications", label: "Communications", path: "/communications", icon: MessageSquare },
       { id: "analytics", label: "Analytics", path: "/analytics", icon: BarChart3 },
       { id: "staff", label: "Staff", path: "/staff", icon: UserCog },
-      { id: "integrations", label: "Integrations", path: "/integrations", icon: Plug },
+      { id: "integrations", label: "Integrations", path: "/integrations", icon: Plug, hidden: true },
       { id: "compliance", label: "Compliance", path: "/compliance", icon: ShieldCheck },
       { id: "settings", label: "Settings", path: "/settings", icon: Settings },
     ],

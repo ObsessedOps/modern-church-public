@@ -10,6 +10,7 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   members: "members:view",
   groups: "groups:view",
   visitors: "visitors:view",
+  "connect-cards": "visitors:view",
   worship: "worship:view",
   giving: "giving:view",
   volunteers: "volunteers:view",

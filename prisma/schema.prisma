@@ -321,6 +321,7 @@ model Church {
   insights         Insight[]
   workflows        Workflow[]
   workflowExecutions WorkflowExecution[]
+  connectCardSubmissions ConnectCardSubmission[]
 }
 
 model Campus {
@@ -921,4 +922,27 @@ model WorkflowStepExecution {
   @@index([stepId])
   @@index([status])
   @@index([scheduledFor])
+}
+
+// ─── Connect Cards ───────────────────────────────────────
+
+model ConnectCardSubmission {
+  id          String   @id @default(cuid())
+  churchId    String
+  church      Church   @relation(fields: [churchId], references: [id])
+  campusId    String?
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+  visitDate   DateTime @default(now())
+  howHeard    String?
+  prayerRequest String?
+  interests   String[] @default([])
+  memberId    String?  // linked after Member record created
+  createdAt   DateTime @default(now())
+
+  @@index([churchId])
+  @@index([campusId])
+  @@index([createdAt])
 }

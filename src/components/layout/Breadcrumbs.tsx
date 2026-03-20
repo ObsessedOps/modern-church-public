@@ -11,6 +11,7 @@ const labelMap: Record<string, string> = {
   members: "Members",
   groups: "Groups",
   visitors: "Visitors",
+  "connect-cards": "Connect Cards",
   worship: "Worship",
   giving: "Giving",
   volunteers: "Volunteers",

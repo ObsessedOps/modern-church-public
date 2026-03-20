@@ -88,6 +88,7 @@ export function Sidebar() {
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
+        if (item.hidden) return false;
         const required = NAV_PERMISSIONS[item.id];
         return !required || can(required);
       }),
