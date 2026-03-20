@@ -7,6 +7,10 @@ import { BarChart3, TrendingUp, Users, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AttendanceTrendChart } from "@/components/dashboard/AttendanceTrendChart";
 import { GivingTrendChart } from "@/components/dashboard/GivingTrendChart";
+import { YoYAttendanceChart } from "@/components/analytics/YoYAttendanceChart";
+import { GivingForecast } from "@/components/analytics/GivingForecast";
+import { RetentionFunnel } from "@/components/analytics/RetentionFunnel";
+import { SeasonalPatterns } from "@/components/analytics/SeasonalPatterns";
 
 const ENGAGEMENT_TIERS = [
   { tier: "CHAMPION", label: "Champion", color: "bg-violet-500", textColor: "text-violet-600 dark:text-violet-400" },
@@ -94,6 +98,18 @@ export default async function AnalyticsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <AttendanceTrendChart data={attendanceTrend} />
         <GivingTrendChart data={givingTrend} />
+      </div>
+
+      {/* Year-over-Year + Giving Forecast */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <YoYAttendanceChart />
+        <GivingForecast />
+      </div>
+
+      {/* Retention Funnel + Seasonal Patterns */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <RetentionFunnel />
+        <SeasonalPatterns />
       </div>
 
       {/* Engagement Distribution + Campus Comparison */}

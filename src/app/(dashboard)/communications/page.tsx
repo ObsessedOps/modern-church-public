@@ -2,8 +2,10 @@ import { getServerSession } from "@/lib/server-auth";
 import { redirect } from "next/navigation";
 import { can } from "@/lib/rbac";
 import { AccessDenied } from "@/components/ui/AccessDenied";
-import { Mail, Smartphone, Megaphone, Send, BarChart3, Users, MousePointerClick } from "lucide-react";
+import { Mail, Smartphone, Send, BarChart3, MousePointerClick, Sparkles, Users, Filter, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GraceComposer } from "@/components/communications/GraceComposer";
+import { AudienceBuilder } from "@/components/communications/AudienceBuilder";
 
 // Mock email campaigns
 const MOCK_EMAIL_CAMPAIGNS = [
@@ -95,6 +97,12 @@ export default async function CommunicationsPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Grace AI Composer + Audience Builder */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <GraceComposer />
+        <AudienceBuilder />
       </div>
 
       {/* Email Campaigns */}

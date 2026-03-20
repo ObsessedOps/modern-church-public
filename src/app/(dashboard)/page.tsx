@@ -20,6 +20,7 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { InsightsFeed } from "@/components/dashboard/InsightsFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PathwayAlerts } from "@/components/dashboard/PathwayAlerts";
+import { GraceNudges } from "@/components/dashboard/GraceNudges";
 import { TrendInsights } from "@/components/dashboard/TrendInsights";
 import { EngagementMomentum } from "@/components/dashboard/EngagementMomentum";
 import { CohortTracker } from "@/components/dashboard/CohortTracker";
@@ -159,6 +160,9 @@ export default async function CommandCenterPage({
 
       {/* ── Grace AI Trend Insights ──────────────────────── */}
       <TrendInsights role={session.role} />
+
+      {/* ── Grace AI Proactive Nudges ──────────────────── */}
+      <GraceNudges role={session.role} />
 
       {/* ── KPI Cards ────────────────────────────────────── */}
       <KpiSection
