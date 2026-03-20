@@ -86,6 +86,16 @@ export const PERMISSIONS = {
     edit: "growth-track:edit",
   },
 
+  // Intelligence features
+  thresholds: {
+    view: "thresholds:view",
+    manage: "thresholds:manage",
+  },
+  insights: {
+    view: "insights:view",
+    share: "insights:share",
+  },
+
   // Platform (super admin only)
   platform: {
     manage: "platform:manage",

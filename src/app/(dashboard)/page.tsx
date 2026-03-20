@@ -17,6 +17,7 @@ import { AlertFeed } from "@/components/dashboard/AlertFeed";
 import { RecentLifeEvents } from "@/components/dashboard/RecentLifeEvents";
 import { CampusComparison } from "@/components/dashboard/CampusComparison";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { InsightsFeed } from "@/components/dashboard/InsightsFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 
 function getGreeting(): string {
@@ -144,7 +145,10 @@ export default async function CommandCenterPage({
         <QuickActions />
       </div>
 
-      {/* ── Row 1: KPI Cards ──────────────────────────────── */}
+      {/* ── Grace AI Briefing ────────────────────────────── */}
+      <GraceBriefing data={briefing} />
+
+      {/* ── KPI Cards ────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           label="Weekend Attendance"
@@ -223,10 +227,7 @@ export default async function CommandCenterPage({
         )}
       </div>
 
-      {/* ── Row 2: Grace AI Briefing ────────────────────── */}
-      <GraceBriefing data={briefing} />
-
-      {/* ── Row 3: Charts ─────────────────────────────────── */}
+      {/* ── Charts ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <div className={canSeeGiving ? "lg:col-span-3" : "lg:col-span-5"}>
           <AttendanceTrendChart data={attendanceTrend} />
@@ -238,13 +239,14 @@ export default async function CommandCenterPage({
         )}
       </div>
 
-      {/* ── Row 4: Alerts & Life Events ───────────────────── */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* ── Alerts, Insights & Life Events ─────────────────── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <AlertFeed alerts={dashboard.activeAlerts} />
+        {can(session, 'insights:view') && <InsightsFeed />}
         <RecentLifeEvents lifeEvents={dashboard.recentLifeEvents} />
       </div>
 
-      {/* ── Row 5: Campus Comparison & Activity ───────────── */}
+      {/* ── Campus Comparison & Activity ──────────────────── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <CampusComparison />

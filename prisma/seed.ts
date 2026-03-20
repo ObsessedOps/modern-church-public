@@ -20,6 +20,12 @@ import {
   VolunteerPositionStatus,
   GrowthTrackStep,
   GrowthTrackStatus,
+  ThresholdMetric,
+  ThresholdOperator,
+  ThresholdScope,
+  InsightType,
+  InsightPriority,
+  InsightSource,
 } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
@@ -59,7 +65,7 @@ async function main() {
   console.log("Seeding Modern.Church database...");
 
   // ─── Cleanup ─────────────────────────────────────────────
-  const existingChurch = await prisma.church.findUnique({ where: { slug: "resurrection-church" } });
+  const existingChurch = await prisma.church.findUnique({ where: { slug: "grace-community" } });
   if (existingChurch) {
     // Delete sessions for church users
     const churchUserIds = (
@@ -76,7 +82,10 @@ async function main() {
       prisma.auditLog.deleteMany({ where: { churchId: existingChurch.id } }),
       prisma.alertActionLog.deleteMany({ where: { churchId: existingChurch.id } }),
       prisma.alertMemberImpact.deleteMany({ where: { churchId: existingChurch.id } }),
+      prisma.insightRecipient.deleteMany({ where: { insight: { churchId: existingChurch.id } } }),
+      prisma.customThreshold.deleteMany({ where: { churchId: existingChurch.id } }),
     ]);
+    await prisma.insight.deleteMany({ where: { churchId: existingChurch.id } });
 
     await prisma.alertEvent.deleteMany({ where: { churchId: existingChurch.id } });
     await prisma.volunteerPosition.deleteMany({ where: { team: { churchId: existingChurch.id } } });
@@ -101,8 +110,8 @@ async function main() {
   // ─── Church ──────────────────────────────────────────────
   const church = await prisma.church.create({
     data: {
-      name: "Resurrection Church",
-      slug: "resurrection-church",
+      name: "Grace Community Church",
+      slug: "grace-community",
       plan: Plan.ORGANIZATION,
       denomination: "Non-Denominational",
       timezone: "America/Chicago",
@@ -182,7 +191,7 @@ async function main() {
         passwordHash,
         name: "Pastor Mike Thompson",
         role: Role.SENIOR_PASTOR,
-        email: "mike@resurrection.church",
+        email: "mike@gracecommunity.church",
       },
     }),
     prisma.user.create({
@@ -193,7 +202,7 @@ async function main() {
         passwordHash,
         name: "Sarah Mitchell",
         role: Role.CAMPUS_PASTOR,
-        email: "sarah@resurrection.church",
+        email: "sarah@gracecommunity.church",
       },
     }),
     prisma.user.create({
@@ -203,7 +212,7 @@ async function main() {
         passwordHash,
         name: "Marcus Johnson",
         role: Role.STAFF,
-        email: "marcus@resurrection.church",
+        email: "marcus@gracecommunity.church",
       },
     }),
     prisma.user.create({
@@ -213,7 +222,7 @@ async function main() {
         passwordHash,
         name: "Read Only",
         role: Role.READ_ONLY,
-        email: "reader@resurrection.church",
+        email: "reader@gracecommunity.church",
       },
     }),
     prisma.user.create({
@@ -224,7 +233,7 @@ async function main() {
         passwordHash,
         name: "Jordan Rivera",
         role: Role.YOUTH_PASTOR,
-        email: "jordan@resurrection.church",
+        email: "jordan@gracecommunity.church",
       },
     }),
     prisma.user.create({
@@ -234,7 +243,7 @@ async function main() {
         passwordHash,
         name: "Patrice Nguyen",
         role: Role.ACCOUNTING,
-        email: "patrice@resurrection.church",
+        email: "patrice@gracecommunity.church",
       },
     }),
     prisma.user.create({
@@ -245,7 +254,7 @@ async function main() {
         passwordHash,
         name: "Derek Hayes",
         role: Role.WORSHIP_LEADER,
-        email: "derek@resurrection.church",
+        email: "derek@gracecommunity.church",
       },
     }),
   ]);
@@ -354,56 +363,64 @@ async function main() {
   console.log("Created family member links");
 
   // ─── Service Summaries (12 weeks x 4 campuses = 48) ─────
+  // Growth formula: oldest week (12) is lowest, newest week (1) is highest (~2% growth/week)
+  function growingCount(base: number, week: number, growthPerWeek: number): number {
+    // week=12 is oldest (lowest), week=1 is newest (highest)
+    const growth = (12 - week) * growthPerWeek;
+    const jitter = randomBetween(-Math.floor(base * 0.02), Math.floor(base * 0.02));
+    return Math.max(1, Math.round(base + growth + jitter));
+  }
+
   const serviceSummaries = [];
   for (let week = 1; week <= 12; week++) {
     const serviceDate = sundayWeeksAgo(week);
 
-    // Downtown
+    // Downtown — base ~400 adults, growing ~5/week
     serviceSummaries.push({
       churchId: church.id,
       campusId: downtown.id,
       serviceDate,
       serviceTime: "10:00 AM",
       serviceType: ServiceType.WEEKEND,
-      adultCount: randomBetween(420, 480),
-      childCount: randomBetween(150, 180),
+      adultCount: growingCount(400, week, 5),
+      childCount: growingCount(140, week, 3),
       onlineCount: 0,
-      volunteerCount: randomBetween(45, 55),
-      firstTimeCount: randomBetween(3, 8),
+      volunteerCount: growingCount(44, week, 1),
+      firstTimeCount: growingCount(3, week, 0.4),
       totalCount: 0,
     });
 
-    // Westside
+    // Westside — base ~240 adults, growing ~4/week
     serviceSummaries.push({
       churchId: church.id,
       campusId: westside.id,
       serviceDate,
       serviceTime: "9:00 AM",
       serviceType: ServiceType.WEEKEND,
-      adultCount: randomBetween(260, 300),
-      childCount: randomBetween(85, 110),
+      adultCount: growingCount(240, week, 4),
+      childCount: growingCount(80, week, 2),
       onlineCount: 0,
-      volunteerCount: randomBetween(30, 38),
-      firstTimeCount: randomBetween(2, 5),
+      volunteerCount: growingCount(28, week, 1),
+      firstTimeCount: growingCount(2, week, 0.3),
       totalCount: 0,
     });
 
-    // North
+    // North — base ~100 adults, growing ~3/week
     serviceSummaries.push({
       churchId: church.id,
       campusId: north.id,
       serviceDate,
       serviceTime: "10:00 AM",
       serviceType: ServiceType.WEEKEND,
-      adultCount: randomBetween(110, 140),
-      childCount: randomBetween(35, 50),
+      adultCount: growingCount(100, week, 3),
+      childCount: growingCount(30, week, 1.5),
       onlineCount: 0,
-      volunteerCount: randomBetween(15, 20),
-      firstTimeCount: randomBetween(1, 3),
+      volunteerCount: growingCount(14, week, 0.5),
+      firstTimeCount: growingCount(1, week, 0.2),
       totalCount: 0,
     });
 
-    // Online
+    // Online — base ~650, growing ~8/week
     serviceSummaries.push({
       churchId: church.id,
       campusId: online.id,
@@ -412,9 +429,9 @@ async function main() {
       serviceType: ServiceType.ONLINE,
       adultCount: 0,
       childCount: 0,
-      onlineCount: randomBetween(680, 780),
-      volunteerCount: randomBetween(8, 12),
-      firstTimeCount: randomBetween(5, 15),
+      onlineCount: growingCount(650, week, 8),
+      volunteerCount: growingCount(8, week, 0.3),
+      firstTimeCount: growingCount(5, week, 0.8),
       totalCount: 0,
     });
   }
@@ -442,8 +459,10 @@ async function main() {
   ];
 
   for (const giver of regularGivers) {
-    // 3 months of regular giving
+    // 3 months of regular giving — amounts grow slightly each month (oldest month lowest)
     for (let monthOffset = 0; monthOffset < 3; monthOffset++) {
+      // monthOffset 0 = this month (highest), 2 = oldest (lowest)
+      const growthMultiplier = 1 + (2 - monthOffset) * 0.05; // +10% for this month vs 2 months ago
       for (let weekInMonth = 0; weekInMonth < 4; weekInMonth++) {
         const d = new Date();
         d.setMonth(d.getMonth() - monthOffset);
@@ -454,7 +473,7 @@ async function main() {
           churchId: church.id,
           campusId: giver.primaryCampusId,
           memberId: giver.id,
-          amount: randomBetween(100, 500),
+          amount: Math.round(randomBetween(100, 500) * growthMultiplier),
           fund: "General",
           method: ContributionMethod.ONLINE,
           source: ContributionSource.PUSHPAY,
@@ -687,7 +706,7 @@ async function main() {
     prisma.lifeEvent.create({ data: { churchId: church.id, memberId: m("Daniel", "Garcia").id, campusId: westside.id, type: EventType.MARRIAGE, date: monthsAgo(2), description: "Married Sophia at Westside campus", isPublic: true } }),
     prisma.lifeEvent.create({ data: { churchId: church.id, memberId: m("Carlos", "Martinez").id, campusId: westside.id, type: EventType.BABY_DEDICATION, date: daysAgo(28), description: "Baby Lucia dedicated during Sunday service", isPublic: true } }),
     prisma.lifeEvent.create({ data: { churchId: church.id, memberId: m("Angela", "Williams").id, campusId: downtown.id, type: EventType.DEATH, date: daysAgo(60), description: "Husband Gerald passed away — community support mobilized", isPublic: false } }),
-    prisma.lifeEvent.create({ data: { churchId: church.id, memberId: m("Michael", "Brooks").id, campusId: westside.id, type: EventType.TRANSFER_IN, date: monthsAgo(18), description: "Transferred from First Baptist Westlake", isPublic: true } }),
+    prisma.lifeEvent.create({ data: { churchId: church.id, memberId: m("Michael", "Brooks").id, campusId: westside.id, type: EventType.TRANSFER_IN, date: monthsAgo(18), description: "Transferred from previous church", isPublic: true } }),
     prisma.lifeEvent.create({ data: { churchId: church.id, memberId: m("Kevin", "Hart").id, campusId: downtown.id, type: EventType.RECOMMITMENT, date: monthsAgo(10), description: "Recommitment during revival week — has since disengaged again", isPublic: true } }),
   ]);
   console.log("Created 12 life events");
@@ -803,6 +822,237 @@ async function main() {
     prisma.growthTrack.create({ data: { churchId: church.id, memberId: m("Tanya", "Robinson").id, campusId: north.id, currentStep: GrowthTrackStep.CONNECT, status: GrowthTrackStatus.DROPPED, connectStartedAt: monthsAgo(4), notes: "Moved out of area" } }),
   ]);
   console.log("Created 12 growth track entries");
+
+  // ─── Custom Thresholds (4) ──────────────────────────────
+  await Promise.all([
+    prisma.customThreshold.create({
+      data: {
+        churchId: church.id,
+        createdById: users[4].id, // Jordan Rivera (YOUTH_PASTOR)
+        name: "Youth group attendance below 30",
+        metric: ThresholdMetric.GROUP_ATTENDANCE,
+        operator: ThresholdOperator.LESS_THAN,
+        value: 30,
+        scope: ThresholdScope.GROUP,
+        scopeId: groups[6].id, // Youth Bible Study
+        severity: AlertSeverity.HIGH,
+      },
+    }),
+    prisma.customThreshold.create({
+      data: {
+        churchId: church.id,
+        createdById: users[6].id, // Derek Hayes (WORSHIP_LEADER)
+        name: "Worship team fill rate below 80%",
+        metric: ThresholdMetric.VOLUNTEER_FILL_RATE,
+        operator: ThresholdOperator.LESS_THAN,
+        value: 80,
+        scope: ThresholdScope.TEAM,
+        scopeId: volunteerTeams[0].id, // Worship
+        severity: AlertSeverity.HIGH,
+      },
+    }),
+    prisma.customThreshold.create({
+      data: {
+        churchId: church.id,
+        createdById: users[0].id, // Pastor Mike (SENIOR_PASTOR)
+        name: "Weekend attendance below 800",
+        metric: ThresholdMetric.ATTENDANCE_TOTAL,
+        operator: ThresholdOperator.LESS_THAN,
+        value: 800,
+        scope: ThresholdScope.CHURCH_WIDE,
+        severity: AlertSeverity.CRITICAL,
+      },
+    }),
+    prisma.customThreshold.create({
+      data: {
+        churchId: church.id,
+        createdById: users[1].id, // Sarah Mitchell (CAMPUS_PASTOR)
+        name: "Westside visitors below 3 per week",
+        metric: ThresholdMetric.VISITOR_COUNT,
+        operator: ThresholdOperator.LESS_THAN,
+        value: 3,
+        scope: ThresholdScope.CAMPUS,
+        scopeId: westside.id,
+        severity: AlertSeverity.MEDIUM,
+      },
+    }),
+  ]);
+  console.log("Created 4 custom thresholds");
+
+  // ─── Insights (AI-generated + Leader-shared) ──────────
+  // AI-generated insights
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      type: InsightType.STAFFING_GAP,
+      source: InsightSource.AI_GENERATED,
+      priority: InsightPriority.URGENT,
+      title: "Kids Ministry needs 2 volunteers for Sunday 10:30 AM",
+      body: "Kids Ministry currently has 3 active volunteers but typically needs 5 for the 10:30 AM service. Two positions (Check-In helper and Classroom Assistant) are unfilled this week.",
+      suggestion: "Emily Foster is available and already background-checked. Chris Patterson expressed interest in kids ministry during his Alpha Course. Both are good candidates.",
+      createdAt: daysAgo(1),
+      recipients: {
+        create: [
+          { userId: users[1].id }, // Sarah Mitchell (Campus Pastor)
+        ],
+      },
+    },
+  });
+
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      type: InsightType.PATTERN_DETECTED,
+      source: InsightSource.AI_GENERATED,
+      priority: InsightPriority.IMPORTANT,
+      title: "Parking team has been understaffed 4 of last 6 weeks",
+      body: "The Parking team only has 2 active members (Daniel Garcia and 1 inactive). This creates a recurring gap every week where the team operates at 50% capacity.",
+      suggestion: "Consider a targeted volunteer recruitment ask during Sunday announcements, or merge parking duties with the Greeting/Ushers team temporarily.",
+      createdAt: daysAgo(2),
+      recipients: {
+        create: [
+          { userId: users[0].id, readAt: daysAgo(1), reaction: "on-it" }, // Pastor Mike
+        ],
+      },
+    },
+  });
+
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      type: InsightType.TREND_ALERT,
+      source: InsightSource.AI_GENERATED,
+      priority: InsightPriority.IMPORTANT,
+      title: "Youth Bible Study attendance dropped 3 straight weeks",
+      body: "Youth Bible Study group attendance has declined from 12 to 9 to 6 over the last three weeks. Tyler Kim and Jessica Davis haven't attended recently. The group health score dropped from 82 to 68.",
+      suggestion: "Jordan Rivera should connect with Tyler and Jessica individually. Consider a youth group social event to re-engage students.",
+      createdAt: daysAgo(3),
+      recipients: {
+        create: [
+          { userId: users[4].id }, // Jordan Rivera (Youth Pastor)
+        ],
+      },
+    },
+  });
+
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      type: InsightType.CELEBRATION,
+      source: InsightSource.AI_GENERATED,
+      priority: InsightPriority.FYI,
+      title: "3 baptisms this month across 2 campuses",
+      body: "Chris Patterson (Downtown), Emily Foster (Downtown), and Brandon Scott (North Campus) were all baptized this month. Chris and Emily both came through the Alpha Course. This is the highest baptism month in the last quarter.",
+      suggestion: "Consider a celebration moment in this Sunday's service. These stories could also encourage other members exploring faith.",
+      createdAt: daysAgo(1),
+      recipients: {
+        create: [
+          { userId: users[0].id, readAt: daysAgo(0), reaction: "thanks" }, // Pastor Mike
+          { userId: users[1].id }, // Sarah Mitchell
+          { userId: users[4].id, readAt: daysAgo(0) }, // Jordan Rivera
+          { userId: users[6].id }, // Derek Hayes
+        ],
+      },
+    },
+  });
+
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      type: InsightType.MEMBER_CARE,
+      source: InsightSource.AI_GENERATED,
+      priority: InsightPriority.URGENT,
+      title: "Garcia family may need pastoral attention",
+      body: "Daniel Garcia's attendance dropped from weekly to bi-weekly over the past month, and Maria hasn't been to a service in 3 weeks. Their giving pattern also shifted. This may indicate a family situation that warrants a pastoral check-in.",
+      suggestion: "A pastoral care visit from Sarah Mitchell (their campus pastor) would be appropriate. Consider reaching out before Sunday.",
+      createdAt: daysAgo(0),
+      recipients: {
+        create: [
+          { userId: users[0].id }, // Pastor Mike
+          { userId: users[1].id }, // Sarah Mitchell
+        ],
+      },
+    },
+  });
+
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      type: InsightType.RECOMMENDATION,
+      source: InsightSource.AI_GENERATED,
+      priority: InsightPriority.IMPORTANT,
+      title: "5 first-time visitors from Sunday need follow-up",
+      body: "Jordan Mitchell, Priya Patel, Ethan Brooks, Megan Lewis, and Derek Washington visited for the first time last Sunday. None have been contacted yet — current follow-up time is averaging 4.2 days, above the 48-hour target.",
+      suggestion: "Assign follow-up: Sarah Mitchell (Westside) can contact Priya Patel. Marcus Johnson can handle the Downtown visitors. Megan Lewis at North Campus needs a local contact.",
+      createdAt: daysAgo(1),
+      recipients: {
+        create: [
+          { userId: users[0].id }, // Pastor Mike
+          { userId: users[1].id, readAt: daysAgo(0), reaction: "on-it" }, // Sarah Mitchell
+          { userId: users[2].id }, // Marcus Johnson
+        ],
+      },
+    },
+  });
+
+  // Leader-shared insights
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      authorId: users[4].id, // Jordan Rivera
+      type: InsightType.TREND_ALERT,
+      source: InsightSource.LEADER_SHARED,
+      priority: InsightPriority.IMPORTANT,
+      title: "Youth attendance trending down — losing post-graduation seniors",
+      body: "We went from 45 to 38 to 31 over the last three Sundays. I think we're losing some of the high school seniors post-graduation. Might be worth a targeted connect event. Wanted to flag this for the groups team too.",
+      createdAt: daysAgo(2),
+      recipients: {
+        create: [
+          { userId: users[0].id }, // Pastor Mike
+          { userId: users[2].id, readAt: daysAgo(1), reaction: "on-it" }, // Marcus Johnson
+        ],
+      },
+    },
+  });
+
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      authorId: users[6].id, // Derek Hayes
+      type: InsightType.CELEBRATION,
+      source: InsightSource.LEADER_SHARED,
+      priority: InsightPriority.FYI,
+      title: "New drummer locked in for Westside campus",
+      body: "Marcus Williams has been crushing it in rehearsals. He's committed to both Sunday services starting next week. This fills our last gap in the Westside rotation.",
+      createdAt: daysAgo(1),
+      recipients: {
+        create: [
+          { userId: users[1].id }, // Sarah Mitchell (Campus Pastor)
+          { userId: users[0].id, readAt: daysAgo(0), reaction: "thanks" }, // Pastor Mike
+        ],
+      },
+    },
+  });
+
+  await prisma.insight.create({
+    data: {
+      churchId: church.id,
+      authorId: users[1].id, // Sarah Mitchell
+      type: InsightType.MEMBER_CARE,
+      source: InsightSource.LEADER_SHARED,
+      priority: InsightPriority.URGENT,
+      title: "Can someone check on the Garcia family?",
+      body: "Maria Garcia mentioned they're going through a rough patch. I don't have details but she seemed really stressed after service. Carlos hasn't been in 2 weeks either. This might need a pastoral care visit.",
+      createdAt: daysAgo(0),
+      recipients: {
+        create: [
+          { userId: users[0].id }, // Pastor Mike
+        ],
+      },
+    },
+  });
+
+  console.log("Created 9 insights (6 AI-generated, 3 leader-shared)");
 
   // ─── Audit Log (10) ─────────────────────────────────────
   await Promise.all([

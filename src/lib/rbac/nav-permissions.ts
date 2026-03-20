@@ -6,6 +6,7 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   dashboard: "dashboard:view",
   grace: "grace:use",
   alerts: "alerts:view",
+  insights: "insights:view",
   members: "members:view",
   groups: "groups:view",
   visitors: "visitors:view",

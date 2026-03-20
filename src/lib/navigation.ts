@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Sparkles,
   Bell,
+  Lightbulb,
   Users,
   UsersRound,
   UserPlus,
@@ -40,6 +41,7 @@ export const navigation: NavItem[] = [
   { id: "dashboard", label: "Command Center", path: "/", icon: LayoutDashboard },
   { id: "grace", label: "Grace AI", path: "/grace", icon: Sparkles, color: "grace" },
   { id: "alerts", label: "Alerts", path: "/alerts", icon: Bell, color: "alert" },
+  { id: "insights", label: "Insights", path: "/insights", icon: Lightbulb },
   { id: "members", label: "Members", path: "/members", icon: Users },
   { id: "groups", label: "Groups", path: "/groups", icon: UsersRound },
   { id: "visitors", label: "Visitors", path: "/visitors", icon: UserPlus },
@@ -65,6 +67,7 @@ export const navGroups: NavGroup[] = [
       { id: "dashboard", label: "Command Center", path: "/", icon: LayoutDashboard },
       { id: "grace", label: "Grace AI", path: "/grace", icon: Sparkles, color: "grace" },
       { id: "alerts", label: "Alerts", path: "/alerts", icon: Bell, color: "alert" },
+      { id: "insights", label: "Insights", path: "/insights", icon: Lightbulb },
     ],
   },
   {

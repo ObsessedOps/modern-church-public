@@ -190,6 +190,50 @@ enum VolunteerPositionStatus {
   INACTIVE
 }
 
+enum ThresholdMetric {
+  ATTENDANCE_TOTAL
+  GROUP_ATTENDANCE
+  VOLUNTEER_FILL_RATE
+  VOLUNTEER_ABSENT_WEEKS
+  GROUP_HEALTH_SCORE
+  VISITOR_COUNT
+  MEMBER_ENGAGEMENT_SCORE
+  GROWTH_TRACK_STALL_DAYS
+}
+
+enum ThresholdOperator {
+  LESS_THAN
+  GREATER_THAN
+}
+
+enum ThresholdScope {
+  CHURCH_WIDE
+  CAMPUS
+  GROUP
+  TEAM
+  MEMBER
+}
+
+enum InsightType {
+  STAFFING_GAP
+  TREND_ALERT
+  PATTERN_DETECTED
+  MEMBER_CARE
+  CELEBRATION
+  RECOMMENDATION
+}
+
+enum InsightPriority {
+  FYI
+  IMPORTANT
+  URGENT
+}
+
+enum InsightSource {
+  AI_GENERATED
+  LEADER_SHARED
+}
+
 // ─── Core Models ──────────────────────────────────────────
 
 model Church {
@@ -220,6 +264,8 @@ model Church {
   auditLogs        AuditLog[]
   pageViews        PageView[]
   growthTracks     GrowthTrack[]
+  customThresholds CustomThreshold[]
+  insights         Insight[]
 }
 
 model Campus {
@@ -676,4 +722,69 @@ model GrowthTrack {
   @@index([churchId])
   @@index([campusId])
   @@index([memberId])
+}
+
+// ─── Custom Thresholds ──────────────────────────────────
+
+model CustomThreshold {
+  id              String            @id @default(cuid())
+  churchId        String
+  church          Church            @relation(fields: [churchId], references: [id])
+  createdById     String
+  name            String
+  metric          ThresholdMetric
+  operator        ThresholdOperator
+  value           Float
+  scope           ThresholdScope    @default(CHURCH_WIDE)
+  scopeId         String?
+  severity        AlertSeverity     @default(MEDIUM)
+  isActive        Boolean           @default(true)
+  lastTriggeredAt DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([churchId])
+  @@index([createdById])
+}
+
+// ─── Insights ───────────────────────────────────────────
+
+model Insight {
+  id           String          @id @default(cuid())
+  churchId     String
+  church       Church          @relation(fields: [churchId], references: [id])
+  authorId     String?
+  type         InsightType
+  source       InsightSource   @default(AI_GENERATED)
+  priority     InsightPriority @default(FYI)
+  title        String
+  body         String
+  suggestion   String?
+  data         Json?
+  alertEventId String?
+  isResolved   Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+
+  recipients   InsightRecipient[]
+
+  @@index([churchId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([source])
+}
+
+model InsightRecipient {
+  id        String    @id @default(cuid())
+  insightId String
+  insight   Insight   @relation(fields: [insightId], references: [id], onDelete: Cascade)
+  userId    String
+  readAt    DateTime?
+  reaction  String?
+  replyText String?
+  repliedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([insightId, userId])
+  @@index([userId])
+  @@index([insightId])
 }

@@ -1,56 +1,87 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bell, UserPlus, Users, ShieldCheck, Check } from "lucide-react";
+import {
+  Bell, UserPlus, Users, ShieldCheck, Check,
+  Lightbulb, Heart, TrendingDown, Search, PartyPopper,
+} from "lucide-react";
+import Link from "next/link";
 
 type Notification = {
   id: string;
-  type: "visitor" | "volunteer" | "compliance";
+  type: "visitor" | "volunteer" | "compliance" | "insight";
   title: string;
   detail: string;
   time: string;
   read: boolean;
+  href?: string;
 };
 
 const typeConfig = {
   visitor: { Icon: UserPlus, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-600/10" },
   volunteer: { Icon: Users, color: "text-primary-600", bg: "bg-primary-600/10" },
   compliance: { Icon: ShieldCheck, color: "text-warning", bg: "bg-warning/10" },
+  insight: { Icon: Lightbulb, color: "text-amber-500 dark:text-amber-400", bg: "bg-amber-500/10" },
 };
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "visitor",
-    title: "5 first-time visitors need follow-up",
-    detail: "From last Sunday's services across all campuses",
-    time: "2h ago",
-    read: false,
-  },
-  {
-    id: "2",
-    type: "volunteer",
-    title: "Westside Kids Ministry understaffed for Sunday",
-    detail: "3 of 8 positions still unfilled for 10:30 AM service",
-    time: "4h ago",
-    read: false,
-  },
-  {
-    id: "3",
-    type: "compliance",
-    title: "Background checks expiring for 3 volunteers",
-    detail: "Sarah M., David K., and Lisa R. need renewal",
-    time: "1d ago",
-    read: false,
-  },
-];
+const insightTypeIcons: Record<string, typeof Lightbulb> = {
+  STAFFING_GAP: Users,
+  TREND_ALERT: TrendingDown,
+  PATTERN_DETECTED: Search,
+  MEMBER_CARE: Heart,
+  CELEBRATION: PartyPopper,
+  RECOMMENDATION: Lightbulb,
+};
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  if (hours < 1) return "just now";
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    // Fetch real insights as notifications
+    async function loadNotifications() {
+      try {
+        const res = await fetch("/api/insights");
+        if (!res.ok) return;
+        const insights = await res.json();
+        if (!Array.isArray(insights)) return;
+
+        const notifs: Notification[] = insights
+          .filter((i: { readAt: string | null }) => !i.readAt)
+          .slice(0, 5)
+          .map((i: { id: string; type: string; title: string; body: string; createdAt: string; readAt: string | null }) => ({
+            id: i.id,
+            type: "insight" as const,
+            title: i.title,
+            detail: i.body.slice(0, 80) + (i.body.length > 80 ? "..." : ""),
+            time: timeAgo(i.createdAt),
+            read: !!i.readAt,
+            href: "/insights",
+          }));
+
+        setNotifications(notifs);
+      } catch {
+        // Fallback to empty
+      } finally {
+        setLoaded(true);
+      }
+    }
+
+    loadNotifications();
+  }, []);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -64,6 +95,16 @@ export default function NotificationsDropdown() {
 
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    // Mark insights as read via API
+    notifications.forEach((n) => {
+      if (!n.read) {
+        fetch(`/api/insights/${n.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "read" }),
+        }).catch(() => {});
+      }
+    });
   };
 
   return (
@@ -95,14 +136,19 @@ export default function NotificationsDropdown() {
             )}
           </div>
           <div className="max-h-80 overflow-y-auto custom-scrollbar">
-            {notifications.length === 0 && (
+            {!loaded && (
+              <div className="px-4 py-6 text-center text-xs text-slate-400 dark:text-dark-300">
+                Loading...
+              </div>
+            )}
+            {loaded && notifications.length === 0 && (
               <p className="px-4 py-6 text-center text-xs text-slate-400 dark:text-dark-300">
                 No recent notifications
               </p>
             )}
             {notifications.map((n) => {
               const { Icon, color, bg } = typeConfig[n.type];
-              return (
+              const content = (
                 <div
                   key={n.id}
                   className={`flex items-start gap-3 border-b border-slate-50 px-4 py-3 transition-colors last:border-0 dark:border-dark-700 ${
@@ -129,15 +175,25 @@ export default function NotificationsDropdown() {
                   </span>
                 </div>
               );
+
+              if (n.href) {
+                return (
+                  <Link key={n.id} href={n.href} onClick={() => setOpen(false)}>
+                    {content}
+                  </Link>
+                );
+              }
+              return content;
             })}
           </div>
           <div className="border-t border-slate-100 px-4 py-2.5 text-center dark:border-dark-600">
-            <button
+            <Link
+              href="/insights"
               onClick={() => setOpen(false)}
               className="text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
             >
-              View all notifications
-            </button>
+              View all insights
+            </Link>
           </div>
         </div>
       )}

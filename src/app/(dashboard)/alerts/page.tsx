@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   ChevronRight,
+  SlidersHorizontal,
 } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -58,13 +60,24 @@ export default async function AlertsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-dark-50 sm:text-2xl">
-          Alerts &amp; Watchlist
-        </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-dark-300">
-          AI-detected issues across attendance, giving, volunteers, and pastoral care.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-dark-50 sm:text-2xl">
+            Alerts &amp; Watchlist
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-dark-300">
+            AI-detected issues across attendance, giving, volunteers, and pastoral care.
+          </p>
+        </div>
+        {can(session, 'thresholds:view') && (
+          <Link
+            href="/alerts/thresholds"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-dark-600 dark:text-dark-300 dark:hover:bg-dark-700"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            My Thresholds
+          </Link>
+        )}
       </div>
 
       {/* Summary Cards */}

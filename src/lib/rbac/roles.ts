@@ -23,6 +23,8 @@ const ALL_VIEW = [
   P.compliance.view,
   P.settings.view,
   P.growthTrack.view,
+  P.thresholds.view,
+  P.insights.view,
 ];
 
 const ALL_EDIT = [
@@ -46,6 +48,8 @@ const ALL_EDIT = [
   P.compliance.manage,
   P.settings.manage,
   P.growthTrack.edit,
+  P.thresholds.manage,
+  P.insights.share,
 ];
 
 // Full church access (everything except platform-level)
@@ -99,6 +103,10 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.volunteers.view,
     P.analytics.view,
     P.growthTrack.view,
+    P.thresholds.view,
+    P.thresholds.manage,
+    P.insights.view,
+    P.insights.share,
   ],
 
   KIDS_PASTOR: [
@@ -113,6 +121,10 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.events.view,
     P.events.edit,
     P.compliance.view, // background checks for kids workers
+    P.thresholds.view,
+    P.thresholds.manage,
+    P.insights.view,
+    P.insights.share,
   ],
 
   WORSHIP_LEADER: [
@@ -126,6 +138,10 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.events.view,
     P.events.edit,
     P.members.view,
+    P.thresholds.view,
+    P.thresholds.manage,
+    P.insights.view,
+    P.insights.share,
   ],
 
   GROUPS_DIRECTOR: [
@@ -141,6 +157,10 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.analytics.view,
     P.growthTrack.view,
     P.growthTrack.edit,
+    P.thresholds.view,
+    P.thresholds.manage,
+    P.insights.view,
+    P.insights.share,
   ],
 
   OUTREACH_DIRECTOR: [
@@ -157,6 +177,10 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.analytics.view,
     P.growthTrack.view,
     P.growthTrack.edit,
+    P.thresholds.view,
+    P.thresholds.manage,
+    P.insights.view,
+    P.insights.share,
   ],
 
   ACCOUNTING: [
@@ -168,6 +192,10 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.analytics.export,
     P.compliance.view,
     P.members.view, // need member names for giving records
+    P.thresholds.view,
+    P.thresholds.manage,
+    P.insights.view,
+    P.insights.share,
   ],
 
   FACILITIES: [
@@ -177,6 +205,10 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.campuses.manage,
     P.volunteers.view,
     P.events.view,
+    P.thresholds.view,
+    P.thresholds.manage,
+    P.insights.view,
+    P.insights.share,
   ],
 
   COMMUNICATIONS_DIRECTOR: [
@@ -189,6 +221,10 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.analytics.view,
     P.analytics.export,
     P.groups.view,
+    P.thresholds.view,
+    P.thresholds.manage,
+    P.insights.view,
+    P.insights.share,
   ],
 
   // ─── General ────────────────────────────────────
@@ -208,6 +244,8 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     P.members.view,
     P.groups.view,
     P.events.view,
+    P.thresholds.view,
+    P.insights.view,
   ],
 
   READ_ONLY: [
