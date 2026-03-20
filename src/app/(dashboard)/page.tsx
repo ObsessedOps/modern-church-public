@@ -19,20 +19,25 @@ import { CampusComparison } from "@/components/dashboard/CampusComparison";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { InsightsFeed } from "@/components/dashboard/InsightsFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { prisma } from "@/lib/prisma";
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
+function getGreeting(timezone: string): string {
+  const hour = parseInt(
+    new Intl.DateTimeFormat("en-US", { hour: "numeric", hour12: false, timeZone: timezone }).format(new Date()),
+    10
+  );
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
   return "Good evening";
 }
 
-function formatDate(): string {
+function formatDate(timezone: string): string {
   return new Date().toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: timezone,
   });
 }
 
@@ -63,13 +68,16 @@ export default async function CommandCenterPage({
   const canSeeGrowthTrack = can(session, 'growth-track:view');
 
   // Parallel fetch
-  const [dashboard, attendanceTrend, givingTrend, growthTrack, briefing] = await Promise.all([
+  const [dashboard, attendanceTrend, givingTrend, growthTrack, briefing, church] = await Promise.all([
     getDashboardData(churchId, campusId),
     getAttendanceTrend(churchId, campusId),
     canSeeGiving ? getGivingTrend(churchId, campusId) : Promise.resolve([]),
     canSeeGrowthTrack ? getGrowthTrackData(churchId) : Promise.resolve(null),
     getBriefingData(churchId),
+    prisma.church.findUnique({ where: { id: churchId }, select: { timezone: true } }),
   ]);
+
+  const tz = church?.timezone ?? "America/Chicago";
 
   // ── Compute KPI values ──────────────────────────────────
 
@@ -109,7 +117,7 @@ export default async function CommandCenterPage({
 
   // Greeting
   const userName = session.name?.split(" ")[0] ?? "Pastor";
-  const greeting = getGreeting();
+  const greeting = getGreeting(tz);
 
   return (
     <div className="space-y-6">
@@ -120,7 +128,7 @@ export default async function CommandCenterPage({
             {greeting}, {userName}
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-dark-300">
-            {formatDate()}
+            {formatDate(tz)}
           </p>
         </div>
         <QuickActions />

@@ -415,6 +415,140 @@ export async function getGivingData(churchId: string) {
   };
 }
 
+// ─── Giving Health Intelligence ─────────────────────────
+
+export async function getGivingHealthData(churchId: string) {
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+  const [
+    recurringDonorIds,
+    recentRecurringDonorIds,
+    thisMonthGivers,
+    lastMonthGivers,
+    allTimeDonorIds,
+    activeMembers,
+  ] = await Promise.all([
+    // All members who have ever given recurring
+    prisma.contribution.groupBy({
+      by: ["memberId"],
+      where: { churchId, isRecurring: true, memberId: { not: null } },
+    }),
+    // Members who gave recurring in the last 30 days
+    prisma.contribution.groupBy({
+      by: ["memberId"],
+      where: {
+        churchId,
+        isRecurring: true,
+        memberId: { not: null },
+        transactionDate: { gte: thirtyDaysAgo },
+      },
+    }),
+    // This month givers with totals
+    prisma.contribution.groupBy({
+      by: ["memberId"],
+      where: { churchId, memberId: { not: null }, transactionDate: { gte: startOfMonth } },
+      _sum: { amount: true },
+    }),
+    // Last month givers with totals
+    prisma.contribution.groupBy({
+      by: ["memberId"],
+      where: {
+        churchId,
+        memberId: { not: null },
+        transactionDate: { gte: startOfLastMonth, lte: endOfLastMonth },
+      },
+      _sum: { amount: true },
+    }),
+    // All-time donors (for first-time detection)
+    prisma.contribution.groupBy({
+      by: ["memberId"],
+      where: {
+        churchId,
+        memberId: { not: null },
+        transactionDate: { lt: startOfMonth },
+      },
+    }),
+    // Active members (for giving-to-attendance ratio)
+    prisma.member.count({
+      where: {
+        churchId,
+        membershipStatus: { in: ["MEMBER", "ATTENDEE"] },
+        attendanceRecords: { some: { serviceDate: { gte: thirtyDaysAgo } } },
+      },
+    }),
+  ]);
+
+  // Lapsed recurring donors
+  const recentRecurringSet = new Set(recentRecurringDonorIds.map((r) => r.memberId));
+  const lapsedRecurringIds = recurringDonorIds
+    .map((r) => r.memberId!)
+    .filter((id) => !recentRecurringSet.has(id));
+
+  // Fetch lapsed member details
+  const lapsedRecurring = lapsedRecurringIds.length > 0
+    ? await prisma.member.findMany({
+        where: { id: { in: lapsedRecurringIds } },
+        select: { id: true, firstName: true, lastName: true, email: true, phone: true },
+        take: 20,
+      })
+    : [];
+
+  // First-time givers this month
+  const priorDonorSet = new Set(allTimeDonorIds.map((d) => d.memberId));
+  const firstTimeGiverIds = thisMonthGivers
+    .map((g) => g.memberId!)
+    .filter((id) => !priorDonorSet.has(id));
+
+  const firstTimeGivers = firstTimeGiverIds.length > 0
+    ? await prisma.member.findMany({
+        where: { id: { in: firstTimeGiverIds } },
+        select: { id: true, firstName: true, lastName: true, email: true, phone: true },
+        take: 20,
+      })
+    : [];
+
+  // Declining givers (gave less this month than last)
+  const lastMonthMap = new Map(lastMonthGivers.map((g) => [g.memberId, g._sum.amount ?? 0]));
+  const decliningGiverIds: string[] = [];
+  for (const g of thisMonthGivers) {
+    const lastAmount = lastMonthMap.get(g.memberId) ?? 0;
+    const thisAmount = g._sum.amount ?? 0;
+    if (lastAmount > 0 && thisAmount < lastAmount * 0.5) {
+      decliningGiverIds.push(g.memberId!);
+    }
+  }
+
+  const decliningGivers = decliningGiverIds.length > 0
+    ? await prisma.member.findMany({
+        where: { id: { in: decliningGiverIds.slice(0, 20) } },
+        select: { id: true, firstName: true, lastName: true, email: true, phone: true },
+      })
+    : [];
+
+  // Giving-to-attendance ratio
+  const givingAttendanceRatio =
+    activeMembers > 0
+      ? Math.round((thisMonthGivers.length / activeMembers) * 100)
+      : 0;
+
+  return {
+    lapsedRecurring,
+    lapsedRecurringCount: lapsedRecurringIds.length,
+    firstTimeGivers,
+    firstTimeGiverCount: firstTimeGiverIds.length,
+    decliningGivers,
+    decliningGiverCount: decliningGiverIds.length,
+    givingAttendanceRatio,
+    activeGiversThisMonth: thisMonthGivers.length,
+    activeAttendees: activeMembers,
+  };
+}
+
 // ─── Visitors ───────────────────────────────────────────
 
 export async function getVisitors(churchId: string) {
