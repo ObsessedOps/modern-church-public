@@ -232,6 +232,7 @@ export async function getMemberDetail(memberId: string, churchId: string) {
   return prisma.member.findFirst({
     where: { id: memberId, churchId },
     include: {
+      primaryCampus: { select: { name: true } },
       attendanceRecords: { orderBy: { serviceDate: "desc" }, take: 20 },
       contributions: { orderBy: { transactionDate: "desc" }, take: 20 },
       groupMemberships: {
@@ -245,6 +246,29 @@ export async function getMemberDetail(memberId: string, churchId: string) {
         },
       },
       lifeEvents: { orderBy: { date: "desc" } },
+      growthTracks: {
+        take: 1,
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          currentStep: true,
+          status: true,
+          connectStartedAt: true,
+          connectCompletedAt: true,
+          discoverStartedAt: true,
+          discoverCompletedAt: true,
+          serveStartedAt: true,
+          serveCompletedAt: true,
+        },
+      },
+      workflowExecutions: {
+        where: { status: "RUNNING" },
+        take: 3,
+        orderBy: { startedAt: "desc" },
+        include: {
+          workflow: { select: { name: true } },
+        },
+      },
       familyMembers: {
         include: {
           familyUnit: {
