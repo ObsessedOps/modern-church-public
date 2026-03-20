@@ -35,7 +35,15 @@ function GraceFab() {
   );
 }
 
-export function AppShell({ children, campuses = [] }: { children: React.ReactNode; campuses?: { id: string; name: string; slug: string }[] }) {
+interface AppShellProps {
+  children: React.ReactNode;
+  campuses?: { id: string; name: string; slug: string }[];
+  demoRoles?: Record<string, string>;
+  activeDemoRole?: string;
+  activeDemoRoleLabel?: string;
+}
+
+export function AppShell({ children, campuses = [], demoRoles, activeDemoRole = "", activeDemoRoleLabel = "" }: AppShellProps) {
   const isOpen = useSidebarStore((s) => s.isOpen);
 
   return (
@@ -49,7 +57,7 @@ export function AppShell({ children, campuses = [] }: { children: React.ReactNod
         Skip to main content
       </a>
       <Sidebar />
-      <Topbar campuses={campuses} />
+      <Topbar campuses={campuses} demoRoles={demoRoles} activeDemoRole={activeDemoRole} activeDemoRoleLabel={activeDemoRoleLabel} />
       <main
         id="main-content"
         className="pb-24 transition-all duration-200 ease-out lg:pb-6"

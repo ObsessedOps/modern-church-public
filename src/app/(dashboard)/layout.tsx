@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/layout/AppShell";
 import { PermissionsProvider } from "@/components/providers/PermissionsProvider";
 import { getServerSession } from "@/lib/server-auth";
@@ -6,12 +7,28 @@ import PageViewTracker from "@/components/analytics/PageViewTracker";
 
 export const dynamic = "force-dynamic";
 
+const DEMO_ROLES: Record<string, string> = {
+  SENIOR_PASTOR: "Lead Pastor",
+  CAMPUS_PASTOR: "Campus Pastor",
+  YOUTH_PASTOR: "Youth Pastor",
+  KIDS_PASTOR: "Kids Pastor",
+  WORSHIP_LEADER: "Worship Leader",
+  GROUPS_DIRECTOR: "Groups Director",
+  OUTREACH_DIRECTOR: "Outreach Director",
+  ACCOUNTING: "Accounting",
+  VOLUNTEER_LEADER: "Volunteer Leader",
+  READ_ONLY: "Read Only",
+};
+
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const session = await getServerSession();
+  const cookieStore = await cookies();
+  const demoRole = cookieStore.get("demo_role")?.value ?? "";
+  const activeDemoRoleLabel = DEMO_ROLES[demoRole] ?? "";
 
   const rawCampuses = session
     ? await prisma.campus.findMany({
@@ -33,7 +50,7 @@ export default async function DashboardLayout({
       userName={session?.name ?? ""}
       userEmail={session?.username ?? ""}
     >
-      <AppShell campuses={campuses}>
+      <AppShell campuses={campuses} demoRoles={DEMO_ROLES} activeDemoRole={demoRole} activeDemoRoleLabel={activeDemoRoleLabel}>
         <PageViewTracker />
         {children}
       </AppShell>

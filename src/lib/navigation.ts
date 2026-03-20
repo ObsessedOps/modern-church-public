@@ -114,5 +114,5 @@ export const mobileNav: NavItem[] = [
   navigation.find((n) => n.id === "dashboard")!,
   navigation.find((n) => n.id === "members")!,
   navigation.find((n) => n.id === "giving")!,
-  navigation.find((n) => n.id === "grace")!,
+  navigation.find((n) => n.id === "insights")!,
 ];

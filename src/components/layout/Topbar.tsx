@@ -8,12 +8,16 @@ import { useGracePanelStore } from "@/stores/grace-panel";
 import { useThemeStore } from "@/stores/theme";
 import NotificationsDropdown from "@/components/layout/NotificationsDropdown";
 import UserMenu from "@/components/layout/UserMenu";
+import { DemoRoleSwitcher } from "@/components/layout/DemoRoleSwitcher";
 
 interface TopbarProps {
   campuses?: { id: string; name: string; slug: string }[];
+  demoRoles?: Record<string, string>;
+  activeDemoRole?: string;
+  activeDemoRoleLabel?: string;
 }
 
-export function Topbar({ campuses = [] }: TopbarProps) {
+export function Topbar({ campuses = [], demoRoles, activeDemoRole = "", activeDemoRoleLabel = "" }: TopbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -70,6 +74,15 @@ export function Topbar({ campuses = [] }: TopbarProps) {
         <button aria-label="Search" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-dark-300 dark:hover:bg-dark-700 sm:hidden">
           <Search className="h-5 w-5" />
         </button>
+
+        {/* Demo role switcher */}
+        {demoRoles && (
+          <DemoRoleSwitcher
+            roles={demoRoles}
+            activeRole={activeDemoRole}
+            activeRoleLabel={activeDemoRoleLabel}
+          />
+        )}
 
         {/* Campus selector */}
         <div className="relative">
