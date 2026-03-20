@@ -11,7 +11,7 @@ export async function PATCH(
 ) {
   try {
     const session = await getServerSession();
-    if (!can(session, "automation:manage")) {
+    if (!can(session, "pathways:manage")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -50,7 +50,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession();
-    if (!can(session, "automation:manage")) {
+    if (!can(session, "pathways:manage")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

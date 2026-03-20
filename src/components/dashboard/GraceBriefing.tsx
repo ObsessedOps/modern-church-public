@@ -14,6 +14,7 @@ import {
   Mail,
   Calendar,
   CheckCircle2,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGracePanelStore } from "@/stores/grace-panel";
@@ -44,6 +45,7 @@ interface BriefingData {
   totalPositions: number;
   alerts: BriefingAlert[];
   atRiskMembers: AtRiskMember[];
+  pathways: { active: number; executionsThisWeek: number };
 }
 
 const severityStyles: Record<string, { border: string; bg: string; dot: string; label: string; labelColor: string }> = {
@@ -132,6 +134,13 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
       detail: data.alerts.length > 0 ? `Highest: ${data.alerts[0].headline.slice(0, 50)}` : "No alerts — all clear",
       color: data.alerts.length >= 3 ? "rose" : data.alerts.length > 0 ? "amber" : "emerald",
     },
+    {
+      icon: Workflow,
+      label: "Pathways",
+      value: `${data.pathways.active} active`,
+      detail: `${data.pathways.executionsThisWeek} triggered this week`,
+      color: data.pathways.executionsThisWeek > 0 ? "violet" : "blue",
+    },
   ];
 
   return (
@@ -171,7 +180,8 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
                 h.color === "emerald" && "border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10",
                 h.color === "blue" && "border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10",
                 h.color === "amber" && "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10",
-                h.color === "rose" && "border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10"
+                h.color === "rose" && "border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10",
+                h.color === "violet" && "border-violet-500/20 bg-violet-500/5 hover:bg-violet-500/10"
               )}
             >
               <div className="flex items-center gap-2">
@@ -181,7 +191,8 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
                     h.color === "emerald" && "text-emerald-500",
                     h.color === "blue" && "text-blue-500",
                     h.color === "amber" && "text-amber-500",
-                    h.color === "rose" && "text-rose-500"
+                    h.color === "rose" && "text-rose-500",
+                    h.color === "violet" && "text-violet-500"
                   )}
                 />
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
@@ -194,7 +205,8 @@ export function GraceBriefingSummary({ data }: { data: BriefingData }) {
                   h.color === "emerald" && "text-emerald-600 dark:text-emerald-400",
                   h.color === "blue" && "text-blue-600 dark:text-blue-400",
                   h.color === "amber" && "text-amber-600 dark:text-amber-400",
-                  h.color === "rose" && "text-rose-600 dark:text-rose-400"
+                  h.color === "rose" && "text-rose-600 dark:text-rose-400",
+                  h.color === "violet" && "text-violet-600 dark:text-violet-400"
                 )}
               >
                 {h.value}
@@ -418,6 +430,12 @@ function buildSummary(data: BriefingData): string {
 
   if (data.volunteerFillRate < 90) {
     parts.push(`volunteer coverage at ${data.volunteerFillRate}%`);
+  }
+
+  if (data.pathways.executionsThisWeek > 0) {
+    parts.push(`${data.pathways.active} care pathways triggered ${data.pathways.executionsThisWeek} follow-ups this week`);
+  } else if (data.pathways.active > 0) {
+    parts.push(`${data.pathways.active} care pathways active and monitoring`);
   }
 
   return parts.length > 0

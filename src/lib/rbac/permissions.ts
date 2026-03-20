@@ -86,10 +86,10 @@ export const PERMISSIONS = {
     edit: "growth-track:edit",
   },
 
-  // Automation
-  automation: {
-    view: "automation:view",
-    manage: "automation:manage",
+  // Pathways
+  pathways: {
+    view: "pathways:view",
+    manage: "pathways:manage",
   },
 
   // Intelligence features

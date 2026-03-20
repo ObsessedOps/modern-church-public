@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const session = await getServerSession();
-    if (!can(session, "automation:view")) {
+    if (!can(session, "pathways:view")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -55,7 +55,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession();
-    if (!can(session, "automation:manage")) {
+    if (!can(session, "pathways:manage")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

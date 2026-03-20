@@ -45,7 +45,7 @@ export const navigation: NavItem[] = [
   { id: "grace", label: "Grace AI", path: "/grace", icon: Sparkles, color: "grace" },
   { id: "alerts", label: "Alerts", path: "/alerts", icon: Bell, color: "alert" },
   { id: "insights", label: "Insights", path: "/insights", icon: Lightbulb },
-  { id: "automation", label: "Automation", path: "/automation", icon: Workflow },
+  { id: "pathways", label: "Pathways", path: "/pathways", icon: Workflow },
   { id: "members", label: "Members", path: "/members", icon: Users },
   { id: "groups", label: "Groups", path: "/groups", icon: UsersRound },
   { id: "visitors", label: "Visitors", path: "/visitors", icon: UserPlus },
@@ -73,7 +73,7 @@ export const navGroups: NavGroup[] = [
       { id: "grace", label: "Grace AI", path: "/grace", icon: Sparkles, color: "grace" },
       { id: "alerts", label: "Alerts", path: "/alerts", icon: Bell, color: "alert" },
       { id: "insights", label: "Insights", path: "/insights", icon: Lightbulb },
-      { id: "automation", label: "Automation", path: "/automation", icon: Workflow },
+      { id: "pathways", label: "Pathways", path: "/pathways", icon: Workflow },
     ],
   },
   {
@@ -113,6 +113,6 @@ export const navGroups: NavGroup[] = [
 export const mobileNav: NavItem[] = [
   navigation.find((n) => n.id === "dashboard")!,
   navigation.find((n) => n.id === "members")!,
-  navigation.find((n) => n.id === "grace")!,
   navigation.find((n) => n.id === "giving")!,
+  navigation.find((n) => n.id === "grace")!,
 ];

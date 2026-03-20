@@ -729,6 +729,8 @@ export async function getBriefingData(churchId: string) {
     filledPositions,
     activeAlerts,
     atRiskMembers,
+    activePathways,
+    pathwayExecutionsThisWeek,
   ] = await Promise.all([
     prisma.serviceSummary.findMany({
       where: { churchId, serviceDate: { gte: oneWeekAgo } },
@@ -776,6 +778,12 @@ export async function getBriefingData(churchId: string) {
         primaryCampus: { select: { name: true } },
       },
     }),
+    prisma.workflow.count({
+      where: { churchId, status: "ACTIVE" },
+    }),
+    prisma.workflowExecution.count({
+      where: { churchId, startedAt: { gte: oneWeekAgo } },
+    }),
   ]);
 
   // Compute attendance metrics
@@ -816,5 +824,9 @@ export async function getBriefingData(churchId: string) {
         ? Math.floor((now.getTime() - new Date(m.lastActivityAt).getTime()) / (7 * 24 * 60 * 60 * 1000))
         : null,
     })),
+    pathways: {
+      active: activePathways,
+      executionsThisWeek: pathwayExecutionsThisWeek,
+    },
   };
 }

@@ -19,6 +19,7 @@ import { CampusComparison } from "@/components/dashboard/CampusComparison";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { InsightsFeed } from "@/components/dashboard/InsightsFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { PathwayAlerts } from "@/components/dashboard/PathwayAlerts";
 import { prisma } from "@/lib/prisma";
 
 function getGreeting(timezone: string): string {
@@ -121,6 +122,9 @@ export default async function CommandCenterPage({
 
   return (
     <div className="space-y-6">
+      {/* ── Simulated Pathway Alerts ──────────────────────── */}
+      <PathwayAlerts />
+
       {/* ── Header ────────────────────────────────────────── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>

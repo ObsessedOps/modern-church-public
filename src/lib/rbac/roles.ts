@@ -25,7 +25,7 @@ const ALL_VIEW = [
   P.growthTrack.view,
   P.thresholds.view,
   P.insights.view,
-  P.automation.view,
+  P.pathways.view,
 ];
 
 const ALL_EDIT = [
@@ -51,7 +51,7 @@ const ALL_EDIT = [
   P.growthTrack.edit,
   P.thresholds.manage,
   P.insights.share,
-  P.automation.manage,
+  P.pathways.manage,
 ];
 
 // Full church access (everything except platform-level)

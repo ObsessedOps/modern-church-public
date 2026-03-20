@@ -188,7 +188,7 @@ export function AutomationClient({ data }: AutomationClientProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-dark-50 sm:text-2xl">
-            Care Automation
+            Pathways
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-dark-300">
             AI-powered workflows that turn alerts into action

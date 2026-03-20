@@ -8,9 +8,9 @@ import { AutomationClient } from "./AutomationClient";
 export default async function AutomationPage() {
   const session = await getServerSession();
   if (!session) redirect("/login");
-  if (!can(session, "automation:view")) return <AccessDenied />;
+  if (!can(session, "pathways:view")) return <AccessDenied />;
 
-  const canManage = can(session, "automation:manage");
+  const canManage = can(session, "pathways:manage");
 
   const workflows = await prisma.workflow.findMany({
     where: { churchId: session.churchId },
