@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { X, Sparkles, Send, TrendingUp, AlertTriangle, Users, Calendar, Heart, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGracePanelStore } from "@/stores/grace-panel";
+import { ChatMarkdown } from "@/components/ui/ChatMarkdown";
 
 interface Message {
   id: string;
@@ -343,8 +344,8 @@ function MessageBubble({
       </div>
       <div className="max-w-[90%] space-y-2">
         <div className="rounded-2xl rounded-tl-md bg-slate-100 px-4 py-3 dark:bg-dark-700">
-          <div className="text-sm text-slate-800 dark:text-dark-100 whitespace-pre-line">
-            {renderMarkdown(message.content)}
+          <div className="text-sm text-slate-800 dark:text-dark-100">
+            <ChatMarkdown text={message.content} />
           </div>
         </div>
         {message.suggestions && message.suggestions.length > 0 && (
@@ -368,25 +369,3 @@ function MessageBubble({
   );
 }
 
-function renderMarkdown(text: string): React.ReactNode {
-  const lines = text.split("\n");
-  return lines.map((line, li) => {
-    const parts = line.split(/(\*\*.*?\*\*)/g);
-    const rendered = parts.map((part, pi) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return (
-          <strong key={`${li}-${pi}`} className="font-semibold text-slate-900 dark:text-white">
-            {part.slice(2, -2)}
-          </strong>
-        );
-      }
-      return part;
-    });
-    return (
-      <span key={li}>
-        {rendered}
-        {li < lines.length - 1 && <br />}
-      </span>
-    );
-  });
-}
