@@ -76,7 +76,7 @@ export function Topbar() {
         </button>
 
         {/* Campus selector */}
-        <div className="relative max-sm:hidden">
+        <div className="relative">
           <button
             onClick={() => setCampusOpen(!campusOpen)}
             className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 dark:border-dark-500 dark:text-dark-200 dark:hover:border-dark-400"
