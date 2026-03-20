@@ -65,7 +65,9 @@ async function main() {
   console.log("Seeding Modern.Church database...");
 
   // ─── Cleanup ─────────────────────────────────────────────
-  const existingChurch = await prisma.church.findUnique({ where: { slug: "grace-community" } });
+  // Clean up data from both old and new slugs
+  for (const slug of ["crossroads-church", "grace-community", "resurrection-church"]) {
+  const existingChurch = await prisma.church.findUnique({ where: { slug } });
   if (existingChurch) {
     // Delete sessions for church users
     const churchUserIds = (
@@ -104,14 +106,26 @@ async function main() {
     await prisma.user.deleteMany({ where: { churchId: existingChurch.id } });
     await prisma.campus.deleteMany({ where: { churchId: existingChurch.id } });
     await prisma.church.deleteMany({ where: { id: existingChurch.id } });
-    console.log("Cleaned existing seed data");
+    console.log(`Cleaned existing seed data for slug: ${slug}`);
+  }
+  } // end cleanup loop
+
+  // Clean up any orphaned users by username (from prior seeds with different church slugs)
+  const seedUsernames = ["admin", "sarah", "marcus", "reader", "jordan", "patrice", "derek"];
+  for (const username of seedUsernames) {
+    const existing = await prisma.user.findUnique({ where: { username } });
+    if (existing) {
+      await prisma.session.deleteMany({ where: { userId: existing.id } });
+      await prisma.insightRecipient.deleteMany({ where: { userId: existing.id } });
+      await prisma.user.delete({ where: { id: existing.id } });
+    }
   }
 
   // ─── Church ──────────────────────────────────────────────
   const church = await prisma.church.create({
     data: {
-      name: "Grace Community Church",
-      slug: "grace-community",
+      name: "Crossroads Church",
+      slug: "crossroads-church",
       plan: Plan.ORGANIZATION,
       denomination: "Non-Denominational",
       timezone: "America/Chicago",
@@ -191,7 +205,7 @@ async function main() {
         passwordHash,
         name: "Pastor Mike Thompson",
         role: Role.SENIOR_PASTOR,
-        email: "mike@gracecommunity.church",
+        email: "mike@crossroads.church",
       },
     }),
     prisma.user.create({
@@ -202,7 +216,7 @@ async function main() {
         passwordHash,
         name: "Sarah Mitchell",
         role: Role.CAMPUS_PASTOR,
-        email: "sarah@gracecommunity.church",
+        email: "sarah@crossroads.church",
       },
     }),
     prisma.user.create({
@@ -212,7 +226,7 @@ async function main() {
         passwordHash,
         name: "Marcus Johnson",
         role: Role.STAFF,
-        email: "marcus@gracecommunity.church",
+        email: "marcus@crossroads.church",
       },
     }),
     prisma.user.create({
@@ -222,7 +236,7 @@ async function main() {
         passwordHash,
         name: "Read Only",
         role: Role.READ_ONLY,
-        email: "reader@gracecommunity.church",
+        email: "reader@crossroads.church",
       },
     }),
     prisma.user.create({
@@ -233,7 +247,7 @@ async function main() {
         passwordHash,
         name: "Jordan Rivera",
         role: Role.YOUTH_PASTOR,
-        email: "jordan@gracecommunity.church",
+        email: "jordan@crossroads.church",
       },
     }),
     prisma.user.create({
@@ -243,7 +257,7 @@ async function main() {
         passwordHash,
         name: "Patrice Nguyen",
         role: Role.ACCOUNTING,
-        email: "patrice@gracecommunity.church",
+        email: "patrice@crossroads.church",
       },
     }),
     prisma.user.create({
@@ -254,7 +268,7 @@ async function main() {
         passwordHash,
         name: "Derek Hayes",
         role: Role.WORSHIP_LEADER,
-        email: "derek@gracecommunity.church",
+        email: "derek@crossroads.church",
       },
     }),
   ]);
@@ -364,10 +378,13 @@ async function main() {
 
   // ─── Service Summaries (12 weeks x 4 campuses = 48) ─────
   // Growth formula: oldest week (12) is lowest, newest week (1) is highest (~2% growth/week)
+  // Jitter is kept small enough that it never causes a week-over-week decline
   function growingCount(base: number, week: number, growthPerWeek: number): number {
     // week=12 is oldest (lowest), week=1 is newest (highest)
     const growth = (12 - week) * growthPerWeek;
-    const jitter = randomBetween(-Math.floor(base * 0.02), Math.floor(base * 0.02));
+    // Jitter must be < half of growthPerWeek to prevent inversions
+    const maxJitter = Math.max(0, Math.floor(growthPerWeek * 0.3));
+    const jitter = maxJitter > 0 ? randomBetween(-maxJitter, maxJitter) : 0;
     return Math.max(1, Math.round(base + growth + jitter));
   }
 
@@ -458,8 +475,12 @@ async function main() {
     m("James", "Robinson"), m("Daniel", "Garcia"), m("Marcus", "Williams"),
   ];
 
-  for (const giver of regularGivers) {
-    // 3 months of regular giving — amounts grow slightly each month (oldest month lowest)
+  // Assign each giver a stable base amount so growth multiplier isn't overwhelmed by randomness
+  const giverBases = [350, 250, 300, 450, 200, 175, 225, 150, 275];
+  for (let gi = 0; gi < regularGivers.length; gi++) {
+    const giver = regularGivers[gi];
+    const giverBase = giverBases[gi % giverBases.length];
+    // 3 months of regular giving — amounts grow each month (oldest month lowest)
     for (let monthOffset = 0; monthOffset < 3; monthOffset++) {
       // monthOffset 0 = this month (highest), 2 = oldest (lowest)
       const growthMultiplier = 1 + (2 - monthOffset) * 0.05; // +10% for this month vs 2 months ago
@@ -469,11 +490,13 @@ async function main() {
         d.setDate(7 + weekInMonth * 7);
         if (d > new Date()) continue;
 
+        // Small jitter (±5%) on the stable base, then apply growth
+        const jitter = 1 + (randomBetween(-5, 5) / 100);
         contributionData.push({
           churchId: church.id,
           campusId: giver.primaryCampusId,
           memberId: giver.id,
-          amount: Math.round(randomBetween(100, 500) * growthMultiplier),
+          amount: Math.round(giverBase * jitter * growthMultiplier),
           fund: "General",
           method: ContributionMethod.ONLINE,
           source: ContributionSource.PUSHPAY,

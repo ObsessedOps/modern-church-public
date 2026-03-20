@@ -94,7 +94,7 @@ export function Sidebar() {
     }))
     .filter((group) => group.items.length > 0);
 
-  const collapsed = !isOpen;
+  const collapsed = !isOpen && !isMobileOpen;
 
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
