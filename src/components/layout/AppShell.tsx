@@ -1,21 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { BottomTabBar } from "./BottomTabBar";
-import { GracePanel } from "./GracePanel";
 import { ToastContainer } from "@/components/ui/ToastContainer";
-import { SearchOverlay } from "./SearchOverlay";
 import Breadcrumbs from "./Breadcrumbs";
-import KeyboardShortcuts from "./KeyboardShortcuts";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import NavigationShortcuts from "./NavigationShortcuts";
 import RouteProgress from "./RouteProgress";
 import ScrollToTop from "./ScrollToTop";
 import { useSidebarStore } from "@/stores/sidebar";
 import { useGracePanelStore } from "@/stores/grace-panel";
 import { Sparkles } from "lucide-react";
 import { DemoBanner } from "./DemoBanner";
+
+// Lazy load overlay components — not needed on initial render
+const GracePanel = dynamic(() => import("./GracePanel").then((m) => ({ default: m.GracePanel })), { ssr: false });
+const SearchOverlay = dynamic(() => import("./SearchOverlay").then((m) => ({ default: m.SearchOverlay })), { ssr: false });
+const KeyboardShortcuts = dynamic(() => import("./KeyboardShortcuts"), { ssr: false });
+const NavigationShortcuts = dynamic(() => import("./NavigationShortcuts"), { ssr: false });
 
 function GraceFab() {
   const { isOpen, toggle } = useGracePanelStore();
@@ -35,8 +38,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isOpen = useSidebarStore((s) => s.isOpen);
 
   return (
-    <div className="min-h-screen">
+    <>
       <DemoBanner />
+      <div className="min-h-screen">
       <a
         href="#main-content"
         className="fixed left-2 top-2 z-[100] -translate-y-16 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-lg transition-transform focus:translate-y-0"
@@ -64,7 +68,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="mb-4">
             <Breadcrumbs />
           </div>
-          <ErrorBoundary>{children}</ErrorBoundary>
+          <ErrorBoundary>
+            <div className="animate-fade-up">{children}</div>
+          </ErrorBoundary>
         </div>
       </main>
       <BottomTabBar />
@@ -77,5 +83,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <RouteProgress />
       <ScrollToTop />
     </div>
+    </>
   );
 }

@@ -96,7 +96,7 @@ export function KpiCard({
 
   return (
     <div
-      className={`card border-l-4 ${colors.border} flex items-start gap-4 transition-shadow hover:shadow-lg`}
+      className={`card border-l-4 ${colors.border} flex items-start gap-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5`}
     >
       {/* Icon */}
       <div

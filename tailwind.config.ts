@@ -11,13 +11,14 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: [
+          "var(--font-jakarta)",
           "Plus Jakarta Sans",
           "Inter",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
         ],
-        mono: ["DM Mono", "ui-monospace", "monospace"],
+        mono: ["var(--font-dm-mono)", "DM Mono", "ui-monospace", "monospace"],
       },
       fontSize: {
         tiny: ["0.625rem", { lineHeight: "0.8125rem" }],
@@ -112,6 +113,7 @@ const config: Config = {
       animation: {
         shimmer: "shimmer 2s linear infinite",
         "toast-in": "toast-in 0.3s ease-out",
+        "fade-up": "fadeUp 0.3s ease-out",
       },
       keyframes: {
         shimmer: {
@@ -121,6 +123,10 @@ const config: Config = {
         "toast-in": {
           from: { opacity: "0", transform: "translateX(100%)" },
           to: { opacity: "1", transform: "translateX(0)" },
+        },
+        fadeUp: {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
       },
     },

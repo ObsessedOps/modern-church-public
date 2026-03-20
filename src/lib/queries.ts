@@ -359,7 +359,7 @@ export async function getGivingData(churchId: string) {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-  const [weeklyTotal, mtdTotal, ytdTotal, recentTransactions, uniqueDonors] = await Promise.all([
+  const [weeklyTotal, mtdTotal, ytdTotal, recentTransactions, uniqueDonors, fundGroupBy] = await Promise.all([
     prisma.contribution.aggregate({
       where: { churchId, transactionDate: { gte: startOfWeek } },
       _sum: { amount: true },
@@ -382,19 +382,16 @@ export async function getGivingData(churchId: string) {
       by: ["memberId"],
       where: { churchId, transactionDate: { gte: startOfYear }, memberId: { not: null } },
     }),
+    prisma.contribution.groupBy({
+      by: ["fund"],
+      where: { churchId, transactionDate: { gte: startOfYear } },
+      _sum: { amount: true },
+    }),
   ]);
 
-  // Fund breakdown
-  const allContributions = await prisma.contribution.findMany({
-    where: { churchId, transactionDate: { gte: startOfYear } },
-    select: { fund: true, amount: true },
-  });
-  const fundMap = new Map<string, number>();
-  for (const c of allContributions) {
-    fundMap.set(c.fund, (fundMap.get(c.fund) ?? 0) + c.amount);
-  }
-  const fundBreakdown = Array.from(fundMap.entries())
-    .map(([fund, total]) => ({ fund, total: Math.round(total * 100) / 100 }))
+  // Fund breakdown — aggregated in DB instead of fetching all rows
+  const fundBreakdown = fundGroupBy
+    .map((f) => ({ fund: f.fund, total: Math.round((f._sum.amount ?? 0) * 100) / 100 }))
     .sort((a, b) => b.total - a.total);
 
   return {

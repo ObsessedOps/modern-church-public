@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 // ─── In-memory rate limiting ────────────────────────────
-// Public demo: 20 messages per IP per 15 minutes
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 20;
 const WINDOW_MS = 15 * 60 * 1000;
@@ -28,6 +27,20 @@ setInterval(() => {
     if (now > val.resetAt) rateLimitMap.delete(key);
   });
 }, 5 * 60 * 1000);
+
+// ─── In-memory context cache (30 min TTL) ───────────────
+let contextCache: { data: string; expires: number } | null = null;
+const CONTEXT_TTL_MS = 30 * 60 * 1000;
+
+async function getCachedChurchContext(): Promise<string> {
+  const now = Date.now();
+  if (contextCache && now < contextCache.expires) {
+    return contextCache.data;
+  }
+  const data = await buildChurchContext();
+  contextCache = { data, expires: now + CONTEXT_TTL_MS };
+  return data;
+}
 
 // ─── Request schema ─────────────────────────────────────
 const chatSchema = z.object({
@@ -132,41 +145,34 @@ async function buildChurchContext(): Promise<string> {
     }),
   ]);
 
-  // Format attendance data
   const attendanceLines = recentServices.slice(0, 8).map((s) => {
     const date = new Date(s.serviceDate).toLocaleDateString();
     return `  ${date} (${s.campus?.name ?? "Unknown"}): ${s.totalCount} total (${s.adultCount} adults, ${s.childCount} children, ${s.onlineCount} online)`;
   });
 
-  // Format alerts
   const alertLines = activeAlerts.map((a) => {
     const members = a.memberImpacts.map((m) => `${m.member.firstName} ${m.member.lastName}`).join(", ");
     return `  [${a.severity}] ${a.eventType}: ${a.headline}${a.summary ? ` — ${a.summary}` : ""}${members ? ` (Affected: ${members})` : ""}`;
   });
 
-  // Format life events
   const lifeEventLines = recentLifeEvents.map((e) => {
     return `  ${e.member.firstName} ${e.member.lastName}: ${e.type} (${new Date(e.date).toLocaleDateString()})${e.description ? ` — ${e.description}` : ""}`;
   });
 
-  // Format groups
   const groupLines = groups.map((g) => {
     return `  ${g.name} (${g.type}): ${g._count.memberships} members, health score: ${g.healthScore ?? "N/A"}, active: ${g.isActive}`;
   });
 
-  // Format volunteer teams
   const volunteerLines = volunteerTeams.map((t) => {
     const activePositions = t.positions.filter((p) => p.status === "ACTIVE");
     const highBurnout = t.positions.filter((p) => p.burnoutRisk === "HIGH");
     return `  ${t.name} (${t.ministryArea}): ${activePositions.length} active volunteers${highBurnout.length > 0 ? `, ${highBurnout.length} HIGH burnout risk` : ""}`;
   });
 
-  // Format growth tracks
   const activeGT = growthTracks.filter((t) => t.status === "ACTIVE");
   const stalledGT = growthTracks.filter((t) => t.status === "STALLED");
   const completedGT = growthTracks.filter((t) => t.status === "COMPLETED");
 
-  // Format engagement distribution
   const engagementLines = engagementDist.map((e) => `  ${e.engagementTier}: ${e._count} members`);
 
   const campusNames = church.campuses.map((c) => `${c.name}${c.isMainCampus ? " (main)" : ""}`).join(", ");
@@ -212,9 +218,8 @@ ${stalledGT.length > 0 ? `  Stalled members needing attention: ${stalledGT.map((
 `.trim();
 }
 
-// ─── POST handler ───────────────────────────────────────
+// ─── POST handler (streaming) ───────────────────────────
 export async function POST(request: NextRequest) {
-  // Rate limit
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
@@ -227,7 +232,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Check API key
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { error: "Grace AI is not configured. Missing API key." },
@@ -235,7 +239,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate input
   const body = await request.json();
   const parsed = chatSchema.safeParse(body);
   if (!parsed.success) {
@@ -243,8 +246,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Build context from live church data
-    const churchContext = await buildChurchContext();
+    const churchContext = await getCachedChurchContext();
 
     const systemPrompt = `You are Grace AI, the intelligent church operations assistant for Modern.Church. You have deep knowledge of this church's data and can provide insights, analysis, and recommendations to church leaders.
 
@@ -261,21 +263,55 @@ GUIDELINES:
 - If asked about something not in the data, say so honestly rather than making up information.
 - Use markdown bold (**text**) for emphasis on key numbers and names.
 - Keep responses concise but thorough — church leaders are busy.
-- This is a public demo — don't reference that fact unless asked. Just be Grace AI.`;
+- This is a public demo — don't reference that fact unless asked. Just be Grace AI.
+- At the very end of your response, on a new line, add exactly 3 contextual follow-up questions the pastor might want to ask next. Format them as:
+[SUGGESTIONS]
+- First follow-up question
+- Second follow-up question
+- Third follow-up question`;
 
     const anthropic = new Anthropic();
 
-    const response = await anthropic.messages.create({
+    const stream = anthropic.messages.stream({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
       system: systemPrompt,
       messages: parsed.data.messages,
     });
 
-    const content = response.content[0];
-    const text = content.type === "text" ? content.text : "";
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const event of stream) {
+            if (
+              event.type === "content_block_delta" &&
+              event.delta.type === "text_delta"
+            ) {
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`)
+              );
+            }
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        } catch (err) {
+          console.error("Grace AI stream error:", err);
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ error: "Stream error" })}\n\n`)
+          );
+          controller.close();
+        }
+      },
+    });
 
-    return NextResponse.json({ content: text });
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
   } catch (err) {
     console.error("Grace AI error:", err);
     return NextResponse.json(

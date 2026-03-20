@@ -8,6 +8,7 @@ interface Message {
   role: "assistant" | "user";
   content: string;
   timestamp: string;
+  suggestions?: string[];
 }
 
 const suggestedPrompts = [
@@ -21,6 +22,21 @@ const suggestedPrompts = [
 
 function formatTime(): string {
   return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function parseSuggestions(text: string): { content: string; suggestions: string[] } {
+  const marker = "[SUGGESTIONS]";
+  const idx = text.indexOf(marker);
+  if (idx === -1) return { content: text.trim(), suggestions: [] };
+
+  const content = text.slice(0, idx).trim();
+  const suggestionsBlock = text.slice(idx + marker.length).trim();
+  const suggestions = suggestionsBlock
+    .split("\n")
+    .map((line) => line.replace(/^-\s*/, "").trim())
+    .filter(Boolean);
+
+  return { content, suggestions };
 }
 
 export default function GraceAIPage() {
@@ -70,7 +86,6 @@ export default function GraceAIPage() {
     setLoading(true);
 
     try {
-      // Send only role + content for the API (skip the welcome message for cleaner context)
       const apiMessages = newMessages
         .filter((m) => m.id !== "welcome")
         .map((m) => ({ role: m.role, content: m.content }));
@@ -92,16 +107,61 @@ export default function GraceAIPage() {
         return;
       }
 
-      const data = await res.json();
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setError("Streaming not supported.");
+        return;
+      }
 
-      const assistantMsg: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: data.content,
-        timestamp: formatTime(),
-      };
+      const assistantId = crypto.randomUUID();
+      let fullText = "";
 
-      setMessages((prev) => [...prev, assistantMsg]);
+      setMessages((prev) => [
+        ...prev,
+        { id: assistantId, role: "assistant", content: "", timestamp: formatTime() },
+      ]);
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6);
+          if (payload === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(payload);
+            if (parsed.text) {
+              fullText += parsed.text;
+              const { content, suggestions } = parseSuggestions(fullText);
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId ? { ...m, content, suggestions } : m
+                )
+              );
+              scrollToBottom();
+            }
+          } catch {
+            // skip malformed chunks
+          }
+        }
+      }
+
+      // Final parse for suggestions
+      const { content, suggestions } = parseSuggestions(fullText);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId ? { ...m, content, suggestions } : m
+        )
+      );
     } catch {
       setError("Failed to reach Grace AI. Please check your connection.");
     } finally {
@@ -127,10 +187,10 @@ export default function GraceAIPage() {
       {/* Messages */}
       <div ref={scrollRef} className="custom-scrollbar mt-4 flex-1 overflow-y-auto space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-dark-600 dark:bg-dark-800">
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
+          <MessageBubble key={msg.id} message={msg} onSuggestionClick={sendMessage} />
         ))}
 
-        {loading && (
+        {loading && !messages.some((m) => m.role === "assistant" && m.content === "") && (
           <div className="flex gap-2.5">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-600 mt-0.5">
               <span className="text-[10px] font-bold text-white">G</span>
@@ -147,7 +207,6 @@ export default function GraceAIPage() {
           </div>
         )}
 
-        {/* Suggested Prompts — show only when conversation is short */}
         {messages.length <= 2 && !loading && (
           <div className="pt-4">
             <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-dark-400">
@@ -207,7 +266,13 @@ export default function GraceAIPage() {
   );
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({
+  message,
+  onSuggestionClick,
+}: {
+  message: Message;
+  onSuggestionClick: (text: string) => void;
+}) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
@@ -230,6 +295,19 @@ function MessageBubble({ message }: { message: Message }) {
             {renderMarkdown(message.content)}
           </div>
         </div>
+        {message.suggestions && message.suggestions.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pl-1">
+            {message.suggestions.map((s) => (
+              <button
+                key={s}
+                onClick={() => onSuggestionClick(s)}
+                className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] text-violet-700 transition-colors hover:bg-violet-100 hover:border-violet-300 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-300 dark:hover:bg-violet-500/20"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         <p className="text-[10px] text-slate-400 dark:text-dark-400 pl-1">{message.timestamp}</p>
       </div>
     </div>
