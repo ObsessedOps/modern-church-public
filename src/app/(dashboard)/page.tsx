@@ -1,7 +1,6 @@
 import { getServerSession } from "@/lib/server-auth";
 import { can } from "@/lib/rbac";
 import { AccessDenied } from "@/components/ui/AccessDenied";
-import { prisma } from "@/lib/prisma";
 import {
   getDashboardData,
   getAttendanceTrend,
@@ -49,25 +48,6 @@ function computeDelta(current: number, previous: number): number | null {
   return Math.round(((current - previous) / previous) * 100 * 10) / 10;
 }
 
-// Campus slug → ID resolution
-const CAMPUS_SLUGS: Record<string, string> = {
-  downtown: "Downtown",
-  westside: "Westside",
-  north: "North Campus",
-  online: "Online",
-};
-
-async function resolveCampusId(churchId: string, slug: string | undefined): Promise<string | undefined> {
-  if (!slug) return undefined;
-  const name = CAMPUS_SLUGS[slug];
-  if (!name) return undefined;
-  const campus = await prisma.campus.findFirst({
-    where: { churchId, name },
-    select: { id: true },
-  });
-  return campus?.id ?? undefined;
-}
-
 export default async function CommandCenterPage({
   searchParams,
 }: {
@@ -77,7 +57,7 @@ export default async function CommandCenterPage({
   if (!can(session, 'dashboard:view')) return <AccessDenied />;
   const { churchId } = session;
   const params = await searchParams;
-  const campusId = await resolveCampusId(churchId, params.campus);
+  const campusId = params.campus || undefined;
 
   const canSeeGiving = can(session, 'giving:view');
   const canSeeGrowthTrack = can(session, 'growth-track:view');

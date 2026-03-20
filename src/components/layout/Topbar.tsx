@@ -9,15 +9,11 @@ import { useThemeStore } from "@/stores/theme";
 import NotificationsDropdown from "@/components/layout/NotificationsDropdown";
 import UserMenu from "@/components/layout/UserMenu";
 
-const campuses = [
-  { label: "All Campuses", id: "" },
-  { label: "Downtown", id: "downtown" },
-  { label: "Westside", id: "westside" },
-  { label: "North Campus", id: "north" },
-  { label: "Online", id: "online" },
-];
+interface TopbarProps {
+  campuses?: { id: string; name: string }[];
+}
 
-export function Topbar() {
+export function Topbar({ campuses = [] }: TopbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -25,18 +21,19 @@ export function Topbar() {
   const toggleGrace = useGracePanelStore((s) => s.toggle);
   const { mode, toggle: toggleTheme } = useThemeStore();
   const currentCampusId = searchParams.get("campus") ?? "";
-  const selectedCampus = campuses.find((c) => c.id === currentCampusId)?.label ?? "All Campuses";
+  const selectedCampus = campuses.find((c) => c.id === currentCampusId)?.name ?? "All Campuses";
   const [campusOpen, setCampusOpen] = useState(false);
 
-  function selectCampus(campusId: string) {
+  function selectCampus(id: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (campusId) {
-      params.set("campus", campusId);
+    if (id) {
+      params.set("campus", id);
     } else {
       params.delete("campus");
     }
     const qs = params.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
+    router.refresh();
     setCampusOpen(false);
   }
 
@@ -93,6 +90,16 @@ export function Topbar() {
                 onClick={() => setCampusOpen(false)}
               />
               <div className="absolute right-0 top-full z-50 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800">
+                <button
+                  onClick={() => selectCampus("")}
+                  className={`flex w-full items-center px-3 py-2 text-left text-xs transition-colors ${
+                    !currentCampusId
+                      ? "bg-violet-50 font-medium text-violet-600 dark:bg-violet-600/10 dark:text-violet-400"
+                      : "text-slate-600 hover:bg-slate-50 dark:text-dark-200 dark:hover:bg-dark-700"
+                  }`}
+                >
+                  All Campuses
+                </button>
                 {campuses.map((campus) => (
                   <button
                     key={campus.id}
@@ -103,7 +110,7 @@ export function Topbar() {
                         : "text-slate-600 hover:bg-slate-50 dark:text-dark-200 dark:hover:bg-dark-700"
                     }`}
                   >
-                    {campus.label}
+                    {campus.name}
                   </button>
                 ))}
               </div>

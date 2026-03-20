@@ -35,7 +35,7 @@ function GraceFab() {
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, campuses = [] }: { children: React.ReactNode; campuses?: { id: string; name: string }[] }) {
   const isOpen = useSidebarStore((s) => s.isOpen);
 
   return (
@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Skip to main content
       </a>
       <Sidebar />
-      <Topbar />
+      <Topbar campuses={campuses} />
       <main
         id="main-content"
         className="pb-24 transition-all duration-200 ease-out lg:pb-6"
