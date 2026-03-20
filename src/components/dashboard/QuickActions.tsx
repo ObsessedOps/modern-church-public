@@ -1,0 +1,50 @@
+"use client";
+
+import { UserPlus, ClipboardCheck, Heart, Sparkles } from "lucide-react";
+import { useToastStore } from "@/stores/toast";
+
+const actions = [
+  {
+    label: "Add Member",
+    icon: UserPlus,
+    action: "add_member",
+  },
+  {
+    label: "Record Attendance",
+    icon: ClipboardCheck,
+    action: "record_attendance",
+  },
+  {
+    label: "Log Contribution",
+    icon: Heart,
+    action: "log_contribution",
+  },
+  {
+    label: "Add Life Event",
+    icon: Sparkles,
+    action: "add_life_event",
+  },
+];
+
+export function QuickActions() {
+  const addToast = useToastStore((s) => s.add);
+
+  function handleAction(action: string, label: string) {
+    addToast("info", `${label} form coming soon`);
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {actions.map(({ label, icon: Icon, action }) => (
+        <button
+          key={action}
+          onClick={() => handleAction(action, label)}
+          className="btn btn-outline gap-2 border-violet-200 text-violet-700 hover:bg-violet-50 dark:border-violet-500/30 dark:text-violet-400 dark:hover:bg-violet-500/10"
+        >
+          <Icon className="h-4 w-4" />
+          <span className="text-xs font-medium">{label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}

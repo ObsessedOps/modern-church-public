@@ -1,0 +1,260 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=DM+Mono:wght@300;400;500&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Light Mode ──────────────────────────────────────── */
+:root {
+  --bg-primary: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f8fafc;
+  --border-color: #e2e8f0;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --topbar-height: 64px;
+  --margin-x: 1rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --margin-x: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --margin-x: 2rem;
+  }
+}
+
+/* ─── Dark Mode ───────────────────────────────────────── */
+.dark {
+  --bg-primary: #0e0f11;
+  --bg-surface: #1c1d21;
+  --bg-surface-2: #232429;
+  --border-color: #2a2c32;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --text-primary: #d0d2db;
+  --text-secondary: #838794;
+  --text-muted: #4c4f57;
+  color-scheme: dark;
+}
+
+/* ─── Base Styles ─────────────────────────────────────── */
+@layer base {
+  html {
+    @apply h-full antialiased;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply h-full font-sans text-sm leading-5;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+  }
+
+  *,
+  ::after,
+  ::before {
+    border-color: var(--border-color);
+  }
+
+  /* Focus-visible ring for keyboard navigation */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-violet-600;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* ─── Component Base ──────────────────────────────────── */
+@layer components {
+  /* ── Card: shadow skin (default — Tailux shadow variant) ── */
+  .card {
+    @apply rounded-card p-4;
+    background: var(--bg-surface);
+    box-shadow: rgba(145, 158, 171, 0.2) 0px 0px 2px 0px,
+      rgba(145, 158, 171, 0.12) 0px 12px 24px -4px;
+  }
+
+  .dark .card {
+    background: var(--bg-surface);
+    box-shadow: none;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+  }
+
+  /* ── Card: bordered skin ── */
+  .card-bordered {
+    @apply rounded-card border p-4;
+    background: transparent;
+    border-color: var(--border-color);
+    box-shadow: none;
+  }
+
+  /* ── Inner bordered items (Tailux pattern for list rows) ── */
+  .item-bordered {
+    @apply rounded-lg border border-slate-200 p-3 dark:border-dark-600;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center rounded-btn px-4 py-2 text-center text-sm font-medium tracking-wide outline-none transition-all duration-200 focus:outline-none disabled:pointer-events-none disabled:select-none disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply bg-violet-600 text-white shadow-sm hover:bg-violet-700 active:bg-violet-800;
+  }
+
+  .btn-outline {
+    @apply border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50 dark:border-dark-500 dark:text-dark-100 dark:hover:bg-dark-600;
+  }
+
+  .btn-ghost {
+    @apply text-slate-600 hover:bg-slate-100 dark:text-dark-200 dark:hover:bg-dark-700;
+  }
+
+  .btn-soft {
+    @apply bg-violet-600/10 text-violet-600 hover:bg-violet-600/20 dark:text-violet-400;
+  }
+
+  /* ── Badge ── */
+  .badge {
+    @apply inline-flex items-center justify-center rounded-badge px-2 py-0.5 text-xs font-medium leading-none tracking-wide;
+  }
+
+  /* ── Grace AI accent ── */
+  .grace-glow {
+    color: #7C3AED;
+  }
+
+  .grace-bg {
+    background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
+  }
+
+  /* ── Alert accent ── */
+  .alert-glow {
+    color: #E11D48;
+  }
+
+  .alert-bg {
+    background: linear-gradient(135deg, #E11D48 0%, #F43F5E 100%);
+  }
+}
+
+/* ─── Scrollbar ───────────────────────────────────────── */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@supports selector(::-webkit-scrollbar) {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 0.25rem;
+    height: 0.25rem;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300/80;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-dark-400;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-300;
+  }
+}
+
+/* ─── Utilities ───────────────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .transition-sidebar {
+    transition-property: width, padding-left, padding-right, margin-left, margin-right;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-in;
+  }
+}
+
+/* ─── Print Styles ─────────────────────────────────────── */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+
+  /* Hide navigation chrome */
+  aside,
+  header,
+  nav,
+  .bottom-tab-bar,
+  [data-grace-panel],
+  [data-toast-container],
+  button {
+    display: none !important;
+  }
+
+  /* Reset main content area */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Show print-only elements */
+  .print\:block {
+    display: block !important;
+  }
+
+  /* Hide screen-only elements */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Ensure cards have visible borders */
+  .card {
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  /* Clean table borders */
+  table {
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  /* Remove background colors */
+  .bg-violet-600,
+  .bg-success,
+  .bg-error,
+  .bg-warning,
+  .bg-info {
+    background: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+  }
+}
