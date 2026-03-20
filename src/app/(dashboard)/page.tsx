@@ -63,7 +63,20 @@ export default async function CommandCenterPage({
   if (!can(session, 'dashboard:view')) return <AccessDenied />;
   const { churchId } = session;
   const params = await searchParams;
-  const campusId = params.campus || undefined;
+  const campusSlug = params.campus || undefined;
+
+  // Resolve campus slug to ID
+  let campusId: string | undefined;
+  if (campusSlug) {
+    const allCampuses = await prisma.campus.findMany({
+      where: { churchId, status: "ACTIVE" },
+      select: { id: true, name: true },
+    });
+    const match = allCampuses.find(
+      (c) => c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") === campusSlug
+    );
+    campusId = match?.id;
+  }
 
   const canSeeGiving = can(session, 'giving:view');
   const canSeeGrowthTrack = can(session, 'growth-track:view');

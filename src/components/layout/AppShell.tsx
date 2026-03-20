@@ -35,7 +35,7 @@ function GraceFab() {
   );
 }
 
-export function AppShell({ children, campuses = [] }: { children: React.ReactNode; campuses?: { id: string; name: string }[] }) {
+export function AppShell({ children, campuses = [] }: { children: React.ReactNode; campuses?: { id: string; name: string; slug: string }[] }) {
   const isOpen = useSidebarStore((s) => s.isOpen);
 
   return (

@@ -10,7 +10,7 @@ import NotificationsDropdown from "@/components/layout/NotificationsDropdown";
 import UserMenu from "@/components/layout/UserMenu";
 
 interface TopbarProps {
-  campuses?: { id: string; name: string }[];
+  campuses?: { id: string; name: string; slug: string }[];
 }
 
 export function Topbar({ campuses = [] }: TopbarProps) {
@@ -20,14 +20,14 @@ export function Topbar({ campuses = [] }: TopbarProps) {
   const { toggleMobile, isOpen } = useSidebarStore();
   const toggleGrace = useGracePanelStore((s) => s.toggle);
   const { mode, toggle: toggleTheme } = useThemeStore();
-  const currentCampusId = searchParams.get("campus") ?? "";
-  const selectedCampus = campuses.find((c) => c.id === currentCampusId)?.name ?? "All Campuses";
+  const currentCampusSlug = searchParams.get("campus") ?? "";
+  const selectedCampus = campuses.find((c) => c.slug === currentCampusSlug)?.name ?? "All Campuses";
   const [campusOpen, setCampusOpen] = useState(false);
 
-  function selectCampus(id: string) {
+  function selectCampus(slug: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (id) {
-      params.set("campus", id);
+    if (slug) {
+      params.set("campus", slug);
     } else {
       params.delete("campus");
     }
@@ -92,7 +92,7 @@ export function Topbar({ campuses = [] }: TopbarProps) {
                 <button
                   onClick={() => selectCampus("")}
                   className={`flex w-full items-center px-3 py-2 text-left text-xs transition-colors ${
-                    !currentCampusId
+                    !currentCampusSlug
                       ? "bg-violet-50 font-medium text-violet-600 dark:bg-violet-600/10 dark:text-violet-400"
                       : "text-slate-600 hover:bg-slate-50 dark:text-dark-200 dark:hover:bg-dark-700"
                   }`}
@@ -102,9 +102,9 @@ export function Topbar({ campuses = [] }: TopbarProps) {
                 {campuses.map((campus) => (
                   <button
                     key={campus.id}
-                    onClick={() => selectCampus(campus.id)}
+                    onClick={() => selectCampus(campus.slug)}
                     className={`flex w-full items-center px-3 py-2 text-left text-xs transition-colors ${
-                      currentCampusId === campus.id
+                      currentCampusSlug === campus.slug
                         ? "bg-violet-50 font-medium text-violet-600 dark:bg-violet-600/10 dark:text-violet-400"
                         : "text-slate-600 hover:bg-slate-50 dark:text-dark-200 dark:hover:bg-dark-700"
                     }`}

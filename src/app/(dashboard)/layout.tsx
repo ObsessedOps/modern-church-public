@@ -13,13 +13,18 @@ export default async function DashboardLayout({
 }) {
   const session = await getServerSession();
 
-  const campuses = session
+  const rawCampuses = session
     ? await prisma.campus.findMany({
         where: { churchId: session.churchId, status: "ACTIVE" },
         select: { id: true, name: true },
         orderBy: { isMainCampus: "desc" },
       })
     : [];
+
+  const campuses = rawCampuses.map((c) => ({
+    ...c,
+    slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+  }));
 
   return (
     <PermissionsProvider
