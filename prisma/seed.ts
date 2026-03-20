@@ -26,6 +26,11 @@ import {
   InsightType,
   InsightPriority,
   InsightSource,
+  WorkflowTrigger,
+  WorkflowStepType,
+  WorkflowStatus,
+  WorkflowExecutionStatus,
+  WorkflowStepExecutionStatus,
 } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
@@ -1091,6 +1096,130 @@ async function main() {
     prisma.auditLog.create({ data: { churchId: church.id, userId: users[0].id, action: "VIEW_DASHBOARD", resource: "dashboard", ip: "10.0.1.10", createdAt: daysAgo(4) } }),
   ]);
   console.log("Created 10 audit log entries");
+
+  // ─── Care Workflows ────────────────────────────────────
+  // Clean up any existing workflows first
+  await prisma.workflowStepExecution.deleteMany({ where: { execution: { churchId: church.id } } });
+  await prisma.workflowExecution.deleteMany({ where: { churchId: church.id } });
+  await prisma.workflowStep.deleteMany({ where: { workflow: { churchId: church.id } } });
+  await prisma.workflow.deleteMany({ where: { churchId: church.id } });
+
+  // Create 3 active workflows from templates
+  const workflow1 = await prisma.workflow.create({
+    data: {
+      churchId: church.id,
+      name: "Attendance Drop — Personal Check-In",
+      description: "When a member misses 3+ weeks, send a caring text, wait 3 days, then email, then create a pastor follow-up task.",
+      trigger: WorkflowTrigger.ALERT_ATTENDANCE_DROP,
+      status: WorkflowStatus.ACTIVE,
+      createdById: users[0].id,
+      steps: {
+        create: [
+          { sortOrder: 1, type: WorkflowStepType.SEND_SMS, config: { body: "Hey {{firstName}}, we've missed you at Crossroads! Just checking in — is everything okay? We're here for you. 💜" } },
+          { sortOrder: 2, type: WorkflowStepType.WAIT_DAYS, config: { days: 3 } },
+          { sortOrder: 3, type: WorkflowStepType.SEND_EMAIL, config: { subject: "We miss you, {{firstName}}!", body: "Hi {{firstName}},\n\nWe noticed you haven't been at services recently and just wanted to reach out.\n\nWith love,\nCrossroads Church" } },
+          { sortOrder: 4, type: WorkflowStepType.WAIT_DAYS, config: { days: 4 } },
+          { sortOrder: 5, type: WorkflowStepType.CREATE_TASK, config: { task: "Personal follow-up call — member absent 3+ weeks", assignTo: "Campus Pastor" } },
+          { sortOrder: 6, type: WorkflowStepType.UPDATE_TAG, config: { tagName: "care:follow-up-sent" } },
+        ],
+      },
+    },
+    include: { steps: { orderBy: { sortOrder: "asc" } } },
+  });
+
+  const workflow2 = await prisma.workflow.create({
+    data: {
+      churchId: church.id,
+      name: "Visitor Welcome Journey",
+      description: "When a first-time visitor is detected, send a welcome text, email the next day, then invite to Growth Track.",
+      trigger: WorkflowTrigger.ALERT_VISITOR_FOLLOWUP_MISSED,
+      status: WorkflowStatus.ACTIVE,
+      createdById: users[0].id,
+      steps: {
+        create: [
+          { sortOrder: 1, type: WorkflowStepType.SEND_SMS, config: { body: "Hi {{firstName}}! 👋 So glad you visited Crossroads! We'd love to help you feel at home." } },
+          { sortOrder: 2, type: WorkflowStepType.WAIT_DAYS, config: { days: 1 } },
+          { sortOrder: 3, type: WorkflowStepType.SEND_EMAIL, config: { subject: "Welcome to Crossroads, {{firstName}}!", body: "Thank you for visiting! Here's how to get connected..." } },
+          { sortOrder: 4, type: WorkflowStepType.WAIT_DAYS, config: { days: 5 } },
+          { sortOrder: 5, type: WorkflowStepType.ENROLL_GROWTH_TRACK, config: {} },
+          { sortOrder: 6, type: WorkflowStepType.NOTIFY_STAFF, config: { title: "New visitor follow-up complete", body: "Automated welcome journey finished." } },
+        ],
+      },
+    },
+    include: { steps: { orderBy: { sortOrder: "asc" } } },
+  });
+
+  const workflow3 = await prisma.workflow.create({
+    data: {
+      churchId: church.id,
+      name: "Volunteer Burnout Prevention",
+      description: "When burnout risk is detected, notify the team leader and send a supportive message.",
+      trigger: WorkflowTrigger.ALERT_VOLUNTEER_BURNOUT,
+      status: WorkflowStatus.ACTIVE,
+      createdById: users[0].id,
+      steps: {
+        create: [
+          { sortOrder: 1, type: WorkflowStepType.NOTIFY_STAFF, config: { title: "Volunteer burnout risk detected", body: "Consider lightening their load." } },
+          { sortOrder: 2, type: WorkflowStepType.WAIT_DAYS, config: { days: 2 } },
+          { sortOrder: 3, type: WorkflowStepType.SEND_EMAIL, config: { subject: "You're amazing, {{firstName}}", body: "We see how much you give and want to make sure you're thriving." } },
+          { sortOrder: 4, type: WorkflowStepType.UPDATE_TAG, config: { tagName: "care:burnout-outreach" } },
+        ],
+      },
+    },
+    include: { steps: { orderBy: { sortOrder: "asc" } } },
+  });
+
+  console.log("Created 3 care workflows");
+
+  // Create demo workflow executions (mix of completed and running)
+  const execMembers = [
+    m("Angela", "Williams"),
+    m("David", "Lee"),
+    m("Carlos", "Martinez"),
+    m("Priya", "Patel"),
+    m("James", "Thompson"),
+    m("Sarah", "Kim"),
+  ].filter(Boolean);
+
+  for (let i = 0; i < Math.min(execMembers.length, 4); i++) {
+    const member = execMembers[i];
+    const wf = i < 2 ? workflow1 : workflow2;
+    const isCompleted = i < 2;
+
+    const execution = await prisma.workflowExecution.create({
+      data: {
+        workflowId: wf.id,
+        churchId: church.id,
+        memberId: member.id,
+        status: isCompleted ? WorkflowExecutionStatus.COMPLETED : WorkflowExecutionStatus.RUNNING,
+        startedAt: daysAgo(isCompleted ? 14 - i * 3 : 3 - i),
+        completedAt: isCompleted ? daysAgo(7 - i * 2) : undefined,
+      },
+    });
+
+    // Create step executions
+    for (let s = 0; s < wf.steps.length; s++) {
+      const step = wf.steps[s];
+      const completed = isCompleted || s < 2;
+      await prisma.workflowStepExecution.create({
+        data: {
+          executionId: execution.id,
+          stepId: step.id,
+          status: completed
+            ? WorkflowStepExecutionStatus.COMPLETED
+            : s === 2
+              ? WorkflowStepExecutionStatus.WAITING
+              : WorkflowStepExecutionStatus.PENDING,
+          scheduledFor: !completed && s === 2 ? daysAgo(-2) : undefined,
+          executedAt: completed ? daysAgo(isCompleted ? 10 - s : 2 - s) : undefined,
+          result: completed
+            ? { status: "delivered", simulatedAt: new Date().toISOString() }
+            : undefined,
+        },
+      });
+    }
+  }
+  console.log("Created demo workflow executions");
 
   console.log("\nSeed complete!");
   console.log("Login credentials: admin / modern2024!");

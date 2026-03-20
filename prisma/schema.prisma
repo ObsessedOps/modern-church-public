@@ -234,6 +234,59 @@ enum InsightSource {
   LEADER_SHARED
 }
 
+// ─── Workflow Enums ─────────────────────────────────────
+
+enum WorkflowTrigger {
+  ALERT_ATTENDANCE_DROP
+  ALERT_GIVING_DECLINE
+  ALERT_VOLUNTEER_BURNOUT
+  ALERT_VISITOR_FOLLOWUP_MISSED
+  ALERT_GROUP_HEALTH_WARNING
+  ALERT_BACKGROUND_CHECK_EXPIRING
+  ALERT_PASTORAL_CARE_OVERDUE
+  ALERT_THRESHOLD_BREACH
+  ENGAGEMENT_TIER_CHANGE
+  LIFE_EVENT
+  VISITOR_FIRST_TIME
+  MEMBER_INACTIVE_30
+  MEMBER_INACTIVE_60
+  MEMBER_INACTIVE_90
+  MANUAL
+}
+
+enum WorkflowStepType {
+  SEND_EMAIL
+  SEND_SMS
+  CREATE_TASK
+  WAIT_DAYS
+  UPDATE_TAG
+  NOTIFY_STAFF
+  ENROLL_GROWTH_TRACK
+  ADD_TO_GROUP
+}
+
+enum WorkflowStatus {
+  ACTIVE
+  PAUSED
+  DRAFT
+  ARCHIVED
+}
+
+enum WorkflowExecutionStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WorkflowStepExecutionStatus {
+  PENDING
+  WAITING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
 // ─── Core Models ──────────────────────────────────────────
 
 model Church {
@@ -266,6 +319,8 @@ model Church {
   growthTracks     GrowthTrack[]
   customThresholds CustomThreshold[]
   insights         Insight[]
+  workflows        Workflow[]
+  workflowExecutions WorkflowExecution[]
 }
 
 model Campus {
@@ -371,6 +426,7 @@ model Member {
   familyMembers      FamilyMember[]
   alertMemberImpacts AlertMemberImpact[]
   growthTracks       GrowthTrack[]
+  workflowExecutions WorkflowExecution[]
 
   @@index([churchId])
   @@index([primaryCampusId])
@@ -787,4 +843,82 @@ model InsightRecipient {
   @@unique([insightId, userId])
   @@index([userId])
   @@index([insightId])
+}
+
+// ─── Care Workflows ─────────────────────────────────────
+
+model Workflow {
+  id          String          @id @default(cuid())
+  churchId    String
+  church      Church          @relation(fields: [churchId], references: [id])
+  name        String
+  description String?
+  trigger     WorkflowTrigger
+  triggerConfig Json?         // optional filter: e.g. { severity: "HIGH", tier: "AT_RISK" }
+  status      WorkflowStatus  @default(DRAFT)
+  isTemplate  Boolean         @default(false)
+  createdById String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  steps      WorkflowStep[]
+  executions WorkflowExecution[]
+
+  @@index([churchId])
+  @@index([trigger])
+  @@index([status])
+}
+
+model WorkflowStep {
+  id          String           @id @default(cuid())
+  workflowId  String
+  workflow    Workflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sortOrder   Int
+  type        WorkflowStepType
+  config      Json             // step-specific config: { subject, body, delayDays, tagName, etc. }
+  createdAt   DateTime         @default(now())
+
+  stepExecutions WorkflowStepExecution[]
+
+  @@index([workflowId])
+}
+
+model WorkflowExecution {
+  id           String                   @id @default(cuid())
+  workflowId   String
+  workflow     Workflow                  @relation(fields: [workflowId], references: [id])
+  churchId     String
+  church       Church                   @relation(fields: [churchId], references: [id])
+  memberId     String
+  member       Member                   @relation(fields: [memberId], references: [id])
+  alertEventId String?
+  status       WorkflowExecutionStatus  @default(RUNNING)
+  startedAt    DateTime                 @default(now())
+  completedAt  DateTime?
+  failedReason String?
+
+  stepExecutions WorkflowStepExecution[]
+
+  @@index([workflowId])
+  @@index([churchId])
+  @@index([memberId])
+  @@index([status])
+}
+
+model WorkflowStepExecution {
+  id            String                       @id @default(cuid())
+  executionId   String
+  execution     WorkflowExecution            @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  stepId        String
+  step          WorkflowStep                 @relation(fields: [stepId], references: [id])
+  status        WorkflowStepExecutionStatus  @default(PENDING)
+  scheduledFor  DateTime?
+  executedAt    DateTime?
+  result        Json?                        // delivery status, error details, etc.
+  createdAt     DateTime                     @default(now())
+
+  @@index([executionId])
+  @@index([stepId])
+  @@index([status])
+  @@index([scheduledFor])
 }

@@ -22,4 +22,5 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   compliance: "compliance:view",
   settings: "settings:view",
   "growth-track": "growth-track:view",
+  automation: "automation:view",
 };

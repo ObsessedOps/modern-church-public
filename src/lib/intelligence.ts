@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { triggerWorkflowsForAlert, advanceWorkflows } from "@/lib/workflows";
 
 // ─── Engagement Score Computation ─────────────────────────
 // Weighted score 0-100 based on attendance, giving, groups, volunteering, recency
@@ -300,6 +301,13 @@ export async function generateAlerts(churchId: string) {
           churchId,
         })),
       });
+    }
+
+    // Trigger matching care workflows
+    try {
+      await triggerWorkflowsForAlert(churchId, alert.id, eventType as never, severity);
+    } catch (e) {
+      console.error("Workflow trigger error:", e);
     }
 
     alertsCreated++;
@@ -942,6 +950,9 @@ export async function runIntelligenceRefresh(churchId: string) {
   const thresholds = await evaluateCustomThresholds(churchId);
   const insights = await generateInsights(churchId);
 
+  // Advance any waiting workflow steps
+  const workflows = await advanceWorkflows(churchId);
+
   return {
     engagementScoresUpdated: engagement.updated,
     groupHealthScoresUpdated: groupHealth.updated,
@@ -949,5 +960,7 @@ export async function runIntelligenceRefresh(churchId: string) {
     alertsCreated: alerts.alertsCreated,
     thresholdsTriggered: thresholds.triggered,
     insightsCreated: insights.insightsCreated,
+    workflowStepsExecuted: workflows.stepsExecuted,
+    workflowsCompleted: workflows.workflowsCompleted,
   };
 }

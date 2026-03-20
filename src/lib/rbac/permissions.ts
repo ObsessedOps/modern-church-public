@@ -86,6 +86,12 @@ export const PERMISSIONS = {
     edit: "growth-track:edit",
   },
 
+  // Automation
+  automation: {
+    view: "automation:view",
+    manage: "automation:manage",
+  },
+
   // Intelligence features
   thresholds: {
     view: "thresholds:view",
