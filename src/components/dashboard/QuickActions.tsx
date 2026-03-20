@@ -34,15 +34,16 @@ export function QuickActions() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="flex gap-2 sm:grid sm:grid-cols-4">
       {actions.map(({ label, icon: Icon, action }) => (
         <button
           key={action}
           onClick={() => handleAction(action, label)}
+          title={label}
           className="btn btn-outline min-h-[44px] gap-2 border-violet-200 text-violet-700 hover:bg-violet-50 active:scale-95 dark:border-violet-500/30 dark:text-violet-400 dark:hover:bg-violet-500/10"
         >
           <Icon className="h-4 w-4" />
-          <span className="text-xs font-medium">{label}</span>
+          <span className="hidden text-xs font-medium sm:inline">{label}</span>
         </button>
       ))}
     </div>

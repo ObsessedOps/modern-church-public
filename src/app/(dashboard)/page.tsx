@@ -10,6 +10,7 @@ import {
   getBriefingData,
 } from "@/lib/queries";
 import { KpiCard } from "@/components/dashboard/KpiCard";
+import { KpiSection } from "@/components/dashboard/KpiSection";
 import { AttendanceTrendChart } from "@/components/dashboard/AttendanceTrendChart";
 import { GivingTrendChart } from "@/components/dashboard/GivingTrendChart";
 import { GraceBriefingSummary, GraceBriefingDetails } from "@/components/dashboard/GraceBriefing";
@@ -149,83 +150,130 @@ export default async function CommandCenterPage({
       <GraceBriefingSummary data={briefing} />
 
       {/* ── KPI Cards ────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <KpiCard
-          label="Weekend Attendance"
-          value={currentAttendance.toLocaleString()}
-          delta={attendanceDelta}
-          deltaLabel="vs last week"
-          detail={`${adultsThisWeek} adults \u00b7 ${kidsThisWeek} kids \u00b7 ${onlineThisWeek} online`}
-          icon="Users"
-          color="violet"
-          href="/attendance"
-        />
-        {canSeeGiving && (
-          <KpiCard
-            label="Weekly Giving"
-            value={formatCurrency(dashboard.givingThisWeek)}
-            delta={givingDelta}
-            deltaLabel="vs last week"
-            detail={`MTD ${formatCurrency(dashboard.givingMTD)} \u00b7 YTD ${formatCurrency(dashboard.givingYTD)}`}
-            icon="Heart"
-            color="emerald"
-            href="/giving"
-          />
-        )}
-        {can(session, 'visitors:view') && (
-          <KpiCard
-            label="First-Time Visitors"
-            value={dashboard.visitorCount}
-            delta={null}
-            detail="This week"
-            icon="UserPlus"
-            color="blue"
-            href="/visitors"
-          />
-        )}
-        <KpiCard
-          label="Salvations & Baptisms"
-          value={salvationBaptismMTD}
-          delta={null}
-          detail="Month to date"
-          icon="Cross"
-          color="purple"
-          href="/members"
-        />
-        {can(session, 'volunteers:view') && (
-          <KpiCard
-            label="Active Volunteers"
-            value={dashboard.volunteerCount}
-            delta={null}
-            detail="Serving positions filled"
-            icon="HandHeart"
-            color="amber"
-            href="/volunteers"
-          />
-        )}
-        {can(session, 'groups:view') && (
-          <KpiCard
-            label="Small Groups"
-            value={dashboard.activeGroupCount}
-            delta={null}
-            detail={`${dashboard.activeMemberCount.toLocaleString()} active members`}
-            icon="UsersRound"
-            color="cyan"
-            href="/groups"
-          />
-        )}
-        {canSeeGrowthTrack && growthTrack && (
-          <KpiCard
-            label="Growth Track"
-            value={growthTrack.activeCount}
-            delta={null}
-            detail={`${growthTrack.completedCount} completed · ${growthTrack.stalledCount} stalled`}
-            icon="Footprints"
-            color="teal"
-            href="/growth-track"
-          />
-        )}
-      </div>
+      <KpiSection
+        cards={[
+          {
+            id: "Weekend Attendance",
+            node: (
+              <KpiCard
+                label="Weekend Attendance"
+                value={currentAttendance.toLocaleString()}
+                delta={attendanceDelta}
+                deltaLabel="vs last week"
+                detail={`${adultsThisWeek} adults \u00b7 ${kidsThisWeek} kids \u00b7 ${onlineThisWeek} online`}
+                icon="Users"
+                color="violet"
+                href="/attendance"
+              />
+            ),
+          },
+          ...(canSeeGiving
+            ? [
+                {
+                  id: "Weekly Giving" as const,
+                  node: (
+                    <KpiCard
+                      label="Weekly Giving"
+                      value={formatCurrency(dashboard.givingThisWeek)}
+                      delta={givingDelta}
+                      deltaLabel="vs last week"
+                      detail={`MTD ${formatCurrency(dashboard.givingMTD)} \u00b7 YTD ${formatCurrency(dashboard.givingYTD)}`}
+                      icon="Heart"
+                      color="emerald"
+                      href="/giving"
+                    />
+                  ),
+                },
+              ]
+            : []),
+          ...(can(session, 'visitors:view')
+            ? [
+                {
+                  id: "First-Time Visitors" as const,
+                  node: (
+                    <KpiCard
+                      label="First-Time Visitors"
+                      value={dashboard.visitorCount}
+                      delta={null}
+                      detail="This week"
+                      icon="UserPlus"
+                      color="blue"
+                      href="/visitors"
+                    />
+                  ),
+                },
+              ]
+            : []),
+          {
+            id: "Salvations & Baptisms",
+            node: (
+              <KpiCard
+                label="Salvations & Baptisms"
+                value={salvationBaptismMTD}
+                delta={null}
+                detail="Month to date"
+                icon="Cross"
+                color="purple"
+                href="/members"
+              />
+            ),
+          },
+          ...(can(session, 'volunteers:view')
+            ? [
+                {
+                  id: "Active Volunteers" as const,
+                  node: (
+                    <KpiCard
+                      label="Active Volunteers"
+                      value={dashboard.volunteerCount}
+                      delta={null}
+                      detail="Serving positions filled"
+                      icon="HandHeart"
+                      color="amber"
+                      href="/volunteers"
+                    />
+                  ),
+                },
+              ]
+            : []),
+          ...(can(session, 'groups:view')
+            ? [
+                {
+                  id: "Small Groups" as const,
+                  node: (
+                    <KpiCard
+                      label="Small Groups"
+                      value={dashboard.activeGroupCount}
+                      delta={null}
+                      detail={`${dashboard.activeMemberCount.toLocaleString()} active members`}
+                      icon="UsersRound"
+                      color="cyan"
+                      href="/groups"
+                    />
+                  ),
+                },
+              ]
+            : []),
+          ...(canSeeGrowthTrack && growthTrack
+            ? [
+                {
+                  id: "Growth Track" as const,
+                  node: (
+                    <KpiCard
+                      label="Growth Track"
+                      value={growthTrack.activeCount}
+                      delta={null}
+                      detail={`${growthTrack.completedCount} completed · ${growthTrack.stalledCount} stalled`}
+                      icon="Footprints"
+                      color="teal"
+                      href="/growth-track"
+                    />
+                  ),
+                },
+              ]
+            : []),
+        ]}
+      />
 
       {/* ── Charts ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
