@@ -423,7 +423,28 @@ export async function getVisitors(churchId: string) {
     orderBy: { createdAt: "desc" },
     include: {
       primaryCampus: { select: { name: true } },
-      _count: { select: { attendanceRecords: true, groupMemberships: true } },
+      _count: {
+        select: {
+          attendanceRecords: true,
+          groupMemberships: true,
+          workflowExecutions: true,
+        },
+      },
+      growthTracks: {
+        select: { id: true, currentStep: true, status: true },
+        take: 1,
+      },
+      workflowExecutions: {
+        select: {
+          id: true,
+          status: true,
+          workflow: { select: { name: true } },
+          startedAt: true,
+          completedAt: true,
+        },
+        orderBy: { startedAt: "desc" },
+        take: 1,
+      },
     },
   });
 }
