@@ -89,7 +89,6 @@ export const navGroups: NavGroup[] = [
     label: "OPERATIONS",
     items: [
       { id: "worship", label: "Worship", path: "/worship", icon: Music },
-      { id: "giving", label: "Giving", path: "/giving", icon: Heart },
       { id: "volunteers", label: "Volunteers", path: "/volunteers", icon: HandHeart },
       { id: "events", label: "Events", path: "/events", icon: Calendar },
     ],
@@ -112,6 +111,6 @@ export const navGroups: NavGroup[] = [
 export const mobileNav: NavItem[] = [
   navigation.find((n) => n.id === "dashboard")!,
   navigation.find((n) => n.id === "members")!,
-  navigation.find((n) => n.id === "giving")!,
+  navigation.find((n) => n.id === "visitors")!,
   navigation.find((n) => n.id === "insights")!,
 ];
