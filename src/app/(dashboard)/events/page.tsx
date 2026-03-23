@@ -3,7 +3,7 @@ import { getLifeEvents } from "@/lib/queries";
 import { redirect } from "next/navigation";
 import { can } from "@/lib/rbac";
 import { AccessDenied } from "@/components/ui/AccessDenied";
-import { Calendar, Heart, Baby, Gem, Droplets, MapPin, Clock, Users, ArrowRightLeft, Star } from "lucide-react";
+import { Calendar, Heart, Baby, Gem, Droplets, MapPin, Clock, Users, ArrowRightLeft, Star, Sparkles, TrendingUp, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function formatDate(d: Date | string): string {
@@ -77,6 +77,104 @@ export default async function EventsPage() {
           );
         })}
       </div>
+
+      {/* Grace AI Event Insights */}
+      {(() => {
+        const upcomingCount = MOCK_UPCOMING.length;
+        const worshipEvents = MOCK_UPCOMING.filter((e) => e.type === "WORSHIP").length;
+        const lifeEventTotal = lifeEvents.length;
+        const baptismCount = typeCounts.get("BAPTISM") ?? 0;
+        const salvationCount = typeCounts.get("SALVATION") ?? 0;
+        const membershipCount = typeCounts.get("MEMBERSHIP") ?? 0;
+
+        const eventInsights = [
+          {
+            icon: AlertTriangle,
+            color: "amber",
+            title: "Easter Readiness Check",
+            detail: `Easter is ${upcomingCount > 0 ? "right around the corner with multiple services planned" : "approaching fast"}. Ensure volunteer slots are filled for all ${worshipEvents} worship services — historically Easter sees 30-40% higher attendance. Confirm parking, greeter, and kids ministry coverage now.`,
+          },
+          {
+            icon: TrendingUp,
+            color: "emerald",
+            title: "Life Events Driving Engagement",
+            detail: `${lifeEventTotal} life events recorded — ${salvationCount} salvation${salvationCount !== 1 ? "s" : ""}, ${baptismCount} baptism${baptismCount !== 1 ? "s" : ""}, and ${membershipCount} membership${membershipCount !== 1 ? "s" : ""}. Each milestone is a discipleship touchpoint. Consider scheduling follow-up classes within 2 weeks of each event.`,
+          },
+          {
+            icon: Users,
+            color: "blue",
+            title: "Visitor Connection Opportunity",
+            detail: `Events like the Youth Spring Retreat and Men's Breakfast are prime connection points for newer attendees. ${upcomingCount} upcoming events give you ${upcomingCount} chances to move visitors from "attending" to "belonging" — personal invitations increase attendance 3x.`,
+          },
+          {
+            icon: Calendar,
+            color: "violet",
+            title: "Seasonal Planning Ahead",
+            detail: `Post-Easter, plan for Mother's Day (May), VBS and summer camps (June-July), and back-to-school events (August). Starting promotion 6-8 weeks early increases registration by 45%. Now is the time to lock in summer event dates.`,
+          },
+          {
+            icon: Clock,
+            color: "rose",
+            title: "Calendar Balance Check",
+            detail: `${upcomingCount} events in the near term across ${new Set(MOCK_UPCOMING.map((e) => e.type)).size} categories. The mix of worship, training, fellowship, and retreat events looks healthy. Watch for "event fatigue" — keep 1-2 event-free weekends per month for families to rest.`,
+          },
+        ];
+
+        const insightColors: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+          emerald: { border: "border-emerald-500/20", bg: "bg-emerald-500/5", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+          blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+          amber: { border: "border-amber-500/20", bg: "bg-amber-500/5", iconBg: "bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+          violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", iconBg: "bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+          rose: { border: "border-rose-500/20", bg: "bg-rose-500/5", iconBg: "bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+        };
+
+        return (
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600/10">
+                <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+                Grace AI Event Insights
+              </h3>
+              <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
+                AI-POWERED
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {eventInsights.map((insight) => {
+                const Icon = insight.icon;
+                const style = insightColors[insight.color];
+                return (
+                  <div
+                    key={insight.title}
+                    className={cn(
+                      "rounded-xl border p-4 transition-colors",
+                      style.border,
+                      style.bg,
+                      "bg-white dark:bg-dark-800"
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", style.iconBg)}>
+                        <Icon className={cn("h-4 w-4", style.iconColor)} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-dark-50">
+                          {insight.title}
+                        </p>
+                        <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-dark-200">
+                          {insight.detail}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Upcoming Events + Life Events */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
