@@ -18,7 +18,6 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
   const [prayer, setPrayer] = useState("");
   const [consulting, setConsulting] = useState(false);
   const [heardFrom, setHeardFrom] = useState("");
-  const [humanCheck, setHumanCheck] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [openedAt, setOpenedAt] = useState(0);
@@ -30,7 +29,6 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
     if (open) {
       setTimeout(() => nameRef.current?.focus(), 100);
       setStatus("idle");
-      setHumanCheck(false);
       setHoneypot("");
       setOpenedAt(Date.now());
     }
@@ -48,7 +46,7 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !humanCheck) return;
+    if (!name.trim() || !email.trim()) return;
 
     setStatus("sending");
     try {
@@ -231,34 +229,46 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
                 />
               </div>
 
-              {/* Consulting interest */}
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-violet-200 bg-violet-50/50 px-4 py-3 transition-colors hover:bg-violet-50 dark:border-violet-500/20 dark:bg-violet-500/5 dark:hover:bg-violet-500/10">
-                <div className="relative mt-0.5 flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={consulting}
-                    onChange={(e) => setConsulting(e.target.checked)}
-                    className="peer h-4.5 w-4.5 cursor-pointer appearance-none rounded border-2 border-violet-300 transition-colors checked:border-violet-500 checked:bg-violet-500 dark:border-violet-500/40"
-                  />
-                  <svg
-                    className="pointer-events-none absolute left-0.5 top-0.5 hidden h-3.5 w-3.5 text-white peer-checked:block"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={3}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+              {/* Consulting interest — clear selected/unselected states */}
+              <button
+                type="button"
+                onClick={() => setConsulting(!consulting)}
+                className={cn(
+                  "flex w-full cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-left transition-all",
+                  consulting
+                    ? "border-violet-500 bg-violet-50 ring-2 ring-violet-500/20 dark:border-violet-400 dark:bg-violet-500/15 dark:ring-violet-500/30"
+                    : "border-slate-200 bg-slate-50 hover:border-violet-300 hover:bg-violet-50/30 dark:border-dark-500 dark:bg-dark-700 dark:hover:border-violet-500/30"
+                )}
+              >
+                <div
+                  className={cn(
+                    "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
+                    consulting
+                      ? "border-violet-500 bg-violet-500 text-white dark:border-violet-400 dark:bg-violet-500"
+                      : "border-slate-300 dark:border-dark-400"
+                  )}
+                >
+                  {consulting && (
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-violet-700 dark:text-violet-300">
+                  <span className={cn(
+                    "text-xs font-semibold",
+                    consulting ? "text-violet-700 dark:text-violet-300" : "text-slate-600 dark:text-dark-200"
+                  )}>
                     We&apos;d also love help with strategy &amp; consulting
                   </span>
-                  <p className="mt-0.5 text-[10px] leading-relaxed text-violet-500/80 dark:text-violet-400/60">
-                    Our team offers hands-on consulting to help churches with technology, operations, and growth strategy.
+                  <p className={cn(
+                    "mt-0.5 text-[10px] leading-relaxed",
+                    consulting ? "text-violet-600/70 dark:text-violet-400/70" : "text-slate-400 dark:text-dark-400"
+                  )}>
+                    Our team offers hands-on consulting for technology, operations, and growth strategy.
                   </p>
                 </div>
-              </label>
+              </button>
 
               {/* Honeypot — hidden from humans, bots auto-fill it */}
               <div className="absolute -left-[9999px]" aria-hidden="true">
@@ -272,30 +282,6 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
                 />
               </div>
 
-              {/* Human verification checkbox */}
-              <label className="mt-1 flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-dark-500 dark:hover:bg-dark-700">
-                <div className="relative flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={humanCheck}
-                    onChange={(e) => setHumanCheck(e.target.checked)}
-                    className="peer h-4.5 w-4.5 cursor-pointer appearance-none rounded border-2 border-slate-300 transition-colors checked:border-violet-500 checked:bg-violet-500 dark:border-dark-400"
-                  />
-                  <svg
-                    className="pointer-events-none absolute left-0.5 top-0.5 hidden h-3.5 w-3.5 text-white peer-checked:block"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={3}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <span className="text-xs text-slate-600 dark:text-dark-200">
-                  I&apos;m a real person, not a bot
-                </span>
-              </label>
-
               {status === "error" && (
                 <p className="text-xs text-rose-500">
                   Something went wrong. Please try again.
@@ -304,7 +290,7 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
 
               <button
                 type="submit"
-                disabled={status === "sending" || !name.trim() || !email.trim() || !humanCheck}
+                disabled={status === "sending" || !name.trim() || !email.trim()}
                 className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700 disabled:opacity-50"
               >
                 {status === "sending" ? (
