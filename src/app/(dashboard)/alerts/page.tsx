@@ -14,6 +14,9 @@ import {
   CheckCircle2,
   ChevronRight,
   SlidersHorizontal,
+  Sparkles,
+  TrendingUp,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -57,6 +60,98 @@ export default async function AlertsPage() {
     typeCounts.set(a.eventType, (typeCounts.get(a.eventType) ?? 0) + 1);
   }
 
+  // Severity distribution
+  const severityCounts: Record<string, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+  for (const a of activeAlerts) {
+    severityCounts[a.severity] = (severityCounts[a.severity] ?? 0) + 1;
+  }
+
+  // Unique members impacted across active alerts
+  const impactedMemberIds = new Set<string>();
+  for (const a of activeAlerts) {
+    for (const impact of a.memberImpacts) {
+      impactedMemberIds.add(impact.memberId);
+    }
+  }
+
+  // Average response time for dismissed alerts (detected → latest action log)
+  const responseTimes: number[] = [];
+  for (const a of dismissedAlerts) {
+    if (a.actionLogs.length > 0 && a.detectedAt) {
+      const latestLog = a.actionLogs.reduce((latest, log) =>
+        new Date(log.loggedAt).getTime() > new Date(latest.loggedAt).getTime() ? log : latest
+      , a.actionLogs[0]);
+      const hours = (new Date(latestLog.loggedAt).getTime() - new Date(a.detectedAt).getTime()) / (1000 * 60 * 60);
+      if (hours > 0) responseTimes.push(hours);
+    }
+  }
+  const avgResponseHours = responseTimes.length > 0 ? Math.round(responseTimes.reduce((s, v) => s + v, 0) / responseTimes.length) : 0;
+
+  // Most recurring alert types
+  const sortedTypes = Array.from(typeCounts.entries()).sort((a, b) => b[1] - a[1]);
+  const topRecurring = sortedTypes.length > 0 ? sortedTypes[0] : null;
+  const topRecurringLabel = topRecurring ? (TYPE_META[topRecurring[0]]?.label ?? topRecurring[0]) : "None";
+  const topRecurringCount = topRecurring ? topRecurring[1] : 0;
+
+  // Resolution momentum — use latest action log timestamp as proxy for resolution time
+  const recentlyResolved = dismissedAlerts.filter((a) => {
+    if (a.actionLogs.length === 0) return false;
+    const latestLog = a.actionLogs.reduce((latest, log) =>
+      new Date(log.loggedAt).getTime() > new Date(latest.loggedAt).getTime() ? log : latest
+    , a.actionLogs[0]);
+    const daysSince = (Date.now() - new Date(latestLog.loggedAt).getTime()) / (1000 * 60 * 60 * 24);
+    return daysSince <= 7;
+  });
+
+  const insightColors: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+    emerald: { border: "border-emerald-500/20", bg: "bg-emerald-500/5", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+    blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+    amber: { border: "border-amber-500/20", bg: "bg-amber-500/5", iconBg: "bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+    violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", iconBg: "bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+    rose: { border: "border-rose-500/20", bg: "bg-rose-500/5", iconBg: "bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+  };
+
+  const alertInsights = [
+    {
+      icon: TrendingUp,
+      color: "amber",
+      title: `${activeAlerts.length} Active Alert${activeAlerts.length !== 1 ? "s" : ""} Right Now`,
+      detail: `Severity breakdown: ${severityCounts.CRITICAL} critical, ${severityCounts.HIGH} high, ${severityCounts.MEDIUM} medium, ${severityCounts.LOW} low. ${severityCounts.CRITICAL > 0 ? "Critical alerts need immediate attention." : "No critical-severity alerts at this time."}`,
+    },
+    {
+      icon: Clock,
+      color: "blue",
+      title: avgResponseHours > 0 ? `Avg Response Time: ${avgResponseHours}h` : "Response Time Tracking",
+      detail: avgResponseHours > 0
+        ? `Your team is addressing alerts in an average of ${avgResponseHours} hours from detection to resolution.${avgResponseHours > 48 ? " Consider triaging critical alerts faster to keep this under 24 hours." : " Great job keeping response times tight."}`
+        : "No resolved alerts with timing data yet. As your team addresses alerts, Grace will track how quickly issues are handled.",
+    },
+    {
+      icon: AlertTriangle,
+      color: "rose",
+      title: topRecurring ? `"${topRecurringLabel}" Keeps Recurring` : "No Recurring Patterns Yet",
+      detail: topRecurring
+        ? `${topRecurringLabel} alerts have fired ${topRecurringCount} time${topRecurringCount !== 1 ? "s" : ""} and account for the largest share of active alerts. Consider adjusting thresholds or addressing the root cause to reduce alert fatigue.`
+        : "Alert types are evenly distributed — no single category is dominating. This is a healthy sign of balanced monitoring.",
+    },
+    {
+      icon: Users,
+      color: "violet",
+      title: `${impactedMemberIds.size} Member${impactedMemberIds.size !== 1 ? "s" : ""} Affected`,
+      detail: impactedMemberIds.size > 0
+        ? `Active alerts are linked to ${impactedMemberIds.size} unique member${impactedMemberIds.size !== 1 ? "s" : ""}. Pastoral follow-up on these individuals could prevent disengagement before it becomes permanent.`
+        : "No individual members are currently flagged in active alerts. Your congregation appears stable across tracked metrics.",
+    },
+    {
+      icon: Shield,
+      color: "emerald",
+      title: `${recentlyResolved.length} Alert${recentlyResolved.length !== 1 ? "s" : ""} Resolved This Week`,
+      detail: recentlyResolved.length > 0
+        ? `Your team resolved ${recentlyResolved.length} alert${recentlyResolved.length !== 1 ? "s" : ""} in the past 7 days out of ${dismissedAlerts.length} total resolved. ${recentlyResolved.length >= 3 ? "Strong momentum — keep it up." : "Consider scheduling a weekly alert-triage meeting to accelerate resolutions."}`
+        : "No alerts were resolved in the last 7 days. A quick weekly review can help keep the backlog from growing.",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -99,6 +194,52 @@ export default async function AlertsPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Grace AI Alert Insights */}
+      <div>
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600/10">
+            <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+            Grace AI Alert Insights
+          </h3>
+          <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
+            AI-POWERED
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {alertInsights.map((insight) => {
+            const Icon = insight.icon;
+            const style = insightColors[insight.color];
+            return (
+              <div
+                key={insight.title}
+                className={cn(
+                  "rounded-xl border p-4 transition-colors",
+                  style.border,
+                  style.bg,
+                  "bg-white dark:bg-dark-800"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", style.iconBg)}>
+                    <Icon className={cn("h-4 w-4", style.iconColor)} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-900 dark:text-dark-50">
+                      {insight.title}
+                    </p>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-dark-200">
+                      {insight.detail}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Active Alerts */}

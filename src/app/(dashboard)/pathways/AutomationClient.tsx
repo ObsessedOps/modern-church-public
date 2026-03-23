@@ -22,6 +22,8 @@ import {
   XCircle,
   Loader2,
   Sparkles,
+  TrendingUp,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToastStore } from "@/stores/toast";
@@ -110,6 +112,161 @@ const EXEC_STATUS: Record<string, { icon: typeof CheckCircle2; color: string }> 
   FAILED: { icon: XCircle, color: "text-rose-500" },
   CANCELLED: { icon: XCircle, color: "text-slate-400" },
 };
+
+// ─── Insight Colors ─────────────────────────────────────
+
+const insightColors: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+  emerald: { border: "border-emerald-500/20", bg: "bg-emerald-500/5", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+  blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+  amber: { border: "border-amber-500/20", bg: "bg-amber-500/5", iconBg: "bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+  violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", iconBg: "bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+  rose: { border: "border-rose-500/20", bg: "bg-rose-500/5", iconBg: "bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+};
+
+// ─── Pathway Insights ───────────────────────────────────
+
+function PathwayInsights({
+  workflows,
+  recentExecutions,
+}: {
+  workflows: WorkflowData[];
+  recentExecutions: ExecutionData[];
+}) {
+  // Pathway effectiveness — people reached by active pathways
+  const activeWorkflows = workflows.filter((w) => w.status === "ACTIVE");
+  const totalPeopleReached = workflows.reduce((sum, w) => sum + w.totalExecutions, 0);
+  const activeReach = activeWorkflows.reduce((sum, w) => sum + w.totalExecutions, 0);
+
+  // Execution health — running vs completed vs failed
+  const execStatusCounts: Record<string, number> = {};
+  for (const exec of recentExecutions) {
+    execStatusCounts[exec.status] = (execStatusCounts[exec.status] ?? 0) + 1;
+  }
+  const completedCount = execStatusCounts["COMPLETED"] ?? 0;
+  const failedCount = execStatusCounts["FAILED"] ?? 0;
+  const runningCount = execStatusCounts["RUNNING"] ?? 0;
+  const successRate = completedCount + failedCount > 0
+    ? Math.round((completedCount / (completedCount + failedCount)) * 100)
+    : 100;
+
+  // Trigger coverage — which triggers are most active
+  const triggerCounts: Record<string, number> = {};
+  for (const w of activeWorkflows) {
+    triggerCounts[w.trigger] = (triggerCounts[w.trigger] ?? 0) + 1;
+  }
+  const triggerEntries = Array.from(Object.entries(triggerCounts));
+  const topTrigger = triggerEntries.length > 0
+    ? triggerEntries.sort((a, b) => b[1] - a[1])[0]
+    : null;
+  const topTriggerLabel = topTrigger
+    ? (TRIGGER_LABELS[topTrigger[0]] ?? topTrigger[0])
+    : "None";
+  const coveredTriggerCount = triggerEntries.length;
+  const totalPossibleTriggers = Object.keys(TRIGGER_LABELS).length;
+  const uncoveredCount = totalPossibleTriggers - coveredTriggerCount;
+
+  // Member re-engagement — members who appear in multiple executions
+  const memberExecCounts: Record<string, number> = {};
+  for (const exec of recentExecutions) {
+    memberExecCounts[exec.memberName] = (memberExecCounts[exec.memberName] ?? 0) + 1;
+  }
+  const reEngagedMembers = Array.from(Object.values(memberExecCounts)).filter((c) => c >= 2).length;
+
+  // Step completion rates — workflows with highest execution counts
+  const sortedByExec = Array.from(workflows)
+    .filter((w) => w.totalExecutions > 0)
+    .sort((a, b) => b.totalExecutions - a.totalExecutions);
+  const topWorkflow = sortedByExec[0];
+  const avgSteps = workflows.length > 0
+    ? Math.round(workflows.reduce((sum, w) => sum + w.stepsCount, 0) / workflows.length)
+    : 0;
+
+  const pathwayInsights = [
+    {
+      icon: TrendingUp,
+      color: "emerald",
+      title: `${totalPeopleReached.toLocaleString()} People Reached by Pathways`,
+      detail: `${activeWorkflows.length} active pathway${activeWorkflows.length !== 1 ? "s" : ""} have collectively touched ${activeReach.toLocaleString()} members through automated care sequences. ${activeWorkflows.length > 0 ? "Your automation is working — members are being engaged without manual effort." : "Activate a pathway to begin automated outreach."}`,
+    },
+    {
+      icon: Workflow,
+      color: "blue",
+      title: `${successRate}% Execution Success Rate`,
+      detail: `Of recent pathway runs, ${completedCount} completed successfully${failedCount > 0 ? ` and ${failedCount} failed` : ""}${runningCount > 0 ? ` with ${runningCount} currently in progress` : ""}. ${failedCount > 0 ? "Review failed executions to identify delivery issues with emails or SMS steps." : "Execution health is strong across all active pathways."}`,
+    },
+    {
+      icon: AlertTriangle,
+      color: "amber",
+      title: uncoveredCount > 0 ? `${uncoveredCount} Trigger${uncoveredCount !== 1 ? "s" : ""} Without Pathways` : "Full Trigger Coverage",
+      detail: uncoveredCount > 0
+        ? `Your most active trigger is "${topTriggerLabel}." However, ${uncoveredCount} of ${totalPossibleTriggers} available triggers have no pathways assigned. Consider adding workflows for uncovered triggers to close care gaps.`
+        : `All ${totalPossibleTriggers} trigger types have at least one active pathway. "${topTriggerLabel}" is your most-used trigger — great coverage across the board.`,
+    },
+    {
+      icon: Users,
+      color: "violet",
+      title: `${reEngagedMembers} Member${reEngagedMembers !== 1 ? "s" : ""} Touched by Multiple Pathways`,
+      detail: reEngagedMembers > 0
+        ? `${reEngagedMembers} member${reEngagedMembers !== 1 ? "s have" : " has"} been engaged by more than one pathway recently — a sign that your care net is catching people at multiple touchpoints. Monitor for over-communication to avoid message fatigue.`
+        : "No members have been reached by multiple pathways yet. As you activate more workflows, Grace AI will track cross-pathway engagement to prevent over-communication.",
+    },
+    {
+      icon: Sparkles,
+      color: "rose",
+      title: topWorkflow ? `"${topWorkflow.name}" Leading in Follow-Through` : "Step Completion Tracking",
+      detail: topWorkflow
+        ? `"${topWorkflow.name}" has the highest execution volume with ${topWorkflow.totalExecutions} runs across ${topWorkflow.stepsCount} steps. Pathways average ${avgSteps} step${avgSteps !== 1 ? "s" : ""} — shorter pathways tend to have better completion rates.`
+        : `Your pathways average ${avgSteps} step${avgSteps !== 1 ? "s" : ""} each. Once executions begin, Grace AI will surface which steps have the best follow-through and where members drop off.`,
+    },
+  ];
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center gap-2">
+        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600/10">
+          <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+        </div>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+          Grace AI Pathway Insights
+        </h3>
+        <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
+          AI-POWERED
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {pathwayInsights.map((insight) => {
+          const Icon = insight.icon;
+          const style = insightColors[insight.color];
+          return (
+            <div
+              key={insight.title}
+              className={cn(
+                "rounded-xl border p-4 transition-colors",
+                style.border,
+                style.bg,
+                "bg-white dark:bg-dark-800"
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", style.iconBg)}>
+                  <Icon className={cn("h-4 w-4", style.iconColor)} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-dark-50">
+                    {insight.title}
+                  </p>
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-dark-200">
+                    {insight.detail}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 // ─── Component ──────────────────────────────────────────
 
@@ -235,6 +392,9 @@ export function AutomationClient({ data }: AutomationClientProps) {
           </div>
         </div>
       </div>
+
+      {/* ── Grace AI Pathway Insights ──────────────────── */}
+      <PathwayInsights workflows={workflows} recentExecutions={data.recentExecutions} />
 
       {/* ── Template Gallery ───────────────────────────── */}
       {showTemplates && (

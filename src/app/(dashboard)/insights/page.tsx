@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Lightbulb, Plus, Sparkles, MessageCircle } from "lucide-react";
+import { Lightbulb, Plus, Sparkles, MessageCircle, TrendingUp, Users, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { InsightCard } from "@/components/insights/InsightCard";
 import { InsightDetail } from "@/components/insights/InsightDetail";
 import { InsightComposer } from "@/components/insights/InsightComposer";
@@ -111,6 +112,122 @@ export default function InsightsPage() {
           Shared with Me
         </button>
       </div>
+
+      {/* Grace AI Meta-Insights */}
+      {!loading && insights.length > 0 && (() => {
+        const totalInsights = insights.length;
+        const unread = insights.filter((i) => !i.readAt).length;
+        const readCount = totalInsights - unread;
+        const readRate = totalInsights > 0 ? Math.round((readCount / totalInsights) * 100) : 0;
+
+        const reactedInsights = insights.filter((i) => i.reaction !== null);
+        const topReacted = reactedInsights.length;
+        const engagementRate = totalInsights > 0 ? Math.round((topReacted / totalInsights) * 100) : 0;
+
+        const aiGenerated = insights.filter((i) => i.source === "AI_GENERATED" || i.source === "GRACE_AI");
+        const leaderShared = insights.filter((i) => i.source === "LEADER_SHARED");
+        const aiPercent = totalInsights > 0 ? Math.round((aiGenerated.length / totalInsights) * 100) : 0;
+
+        const actionable = insights.filter((i) => i.suggestion !== null);
+        const resolved = insights.filter((i) => i.isResolved);
+        const followUpRate = actionable.length > 0 ? Math.round((resolved.length / actionable.length) * 100) : 0;
+
+        const typeMap = new Map<string, number>();
+        insights.forEach((i) => {
+          typeMap.set(i.type, (typeMap.get(i.type) || 0) + 1);
+        });
+        const coveredTypes = typeMap.size;
+        const allKnownTypes = ["ATTENDANCE", "ENGAGEMENT", "GIVING", "VOLUNTEERS", "PASTORAL", "GROWTH"];
+        const missingTypes = allKnownTypes.filter((t) => !typeMap.has(t));
+
+        const metaInsights = [
+          {
+            icon: TrendingUp,
+            color: "emerald",
+            title: `${totalInsights} Insights Generated — ${readRate}% Read`,
+            detail: `Your team has ${totalInsights} insights available with ${unread} still unread. ${readRate >= 80 ? "Great engagement — your team is staying on top of the data." : readRate >= 50 ? "Solid read rate, but some insights may be slipping through. Consider a weekly review huddle." : "Many insights are going unread. A brief daily check-in could surface valuable patterns before they go stale."}`,
+          },
+          {
+            icon: Users,
+            color: "blue",
+            title: `${engagementRate}% Team Engagement Rate`,
+            detail: `${topReacted} out of ${totalInsights} insights have received reactions from team members. ${engagementRate >= 60 ? "Your team is actively engaging with insights — this drives better decision-making." : "Encouraging team reactions helps surface which insights matter most. Consider asking staff to react to insights during team meetings."}`,
+          },
+          {
+            icon: Sparkles,
+            color: "violet",
+            title: `AI vs Leader Balance: ${aiPercent}% AI-Generated`,
+            detail: `${aiGenerated.length} insights from Grace AI and ${leaderShared.length} shared by leaders. ${leaderShared.length >= aiGenerated.length ? "Great balance — leader observations complement AI analysis well." : leaderShared.length > 0 ? "AI is doing the heavy lifting. Encourage more leaders to share their on-the-ground observations for a fuller picture." : "All insights are AI-generated. Leader-shared observations add valuable context that AI can't capture — encourage your team to share."}`,
+          },
+          {
+            icon: Eye,
+            color: "amber",
+            title: `${followUpRate}% Actionability Rate`,
+            detail: `${actionable.length} insights included actionable suggestions and ${resolved.length} have been marked resolved. ${followUpRate >= 70 ? "Excellent follow-through — insights are driving real action." : followUpRate >= 40 ? "Moderate follow-through. Assigning owners to action items could boost completion." : "Most actionable insights haven't been resolved yet. Consider a weekly 'insight action review' to close the loop."}`,
+          },
+          {
+            icon: Lightbulb,
+            color: "rose",
+            title: `${coveredTypes} Ministry Areas Covered${missingTypes.length > 0 ? ` — ${missingTypes.length} Gaps` : ""}`,
+            detail: `Insights span ${coveredTypes} ministry categories${Array.from(typeMap.entries()).length > 0 ? ` (${Array.from(typeMap.entries()).map(([type, count]) => `${type.charAt(0) + type.slice(1).toLowerCase()}: ${count}`).join(", ")})` : ""}. ${missingTypes.length > 0 ? `No insights yet for ${missingTypes.map((t) => t.charAt(0) + t.slice(1).toLowerCase()).join(", ")} — consider adding data sources or check-ins in those areas.` : "All major ministry areas are covered — comprehensive insight coverage supports holistic leadership."}`,
+          },
+        ];
+
+        const insightColors: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+          emerald: { border: "border-emerald-500/20", bg: "bg-emerald-500/5", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+          blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+          violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", iconBg: "bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+          amber: { border: "border-amber-500/20", bg: "bg-amber-500/5", iconBg: "bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+          rose: { border: "border-rose-500/20", bg: "bg-rose-500/5", iconBg: "bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+        };
+
+        return (
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-purple-600/10">
+                <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+                Grace AI Meta-Insights
+              </h3>
+              <span className="rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                AI-POWERED
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {metaInsights.map((insight) => {
+                const Icon = insight.icon;
+                const style = insightColors[insight.color];
+                return (
+                  <div
+                    key={insight.title}
+                    className={cn(
+                      "rounded-xl border p-4 transition-colors",
+                      style.border,
+                      style.bg,
+                      "bg-white dark:bg-dark-800"
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", style.iconBg)}>
+                        <Icon className={cn("h-4 w-4", style.iconColor)} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-dark-50">
+                          {insight.title}
+                        </p>
+                        <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-dark-200">
+                          {insight.detail}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {loading ? (
         <div className="space-y-3">
