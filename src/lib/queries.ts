@@ -128,32 +128,42 @@ export async function getDashboardData(churchId: string, campusId?: string) {
     }),
   ]);
 
-  // Resolve user names and member names for the audit log
+  // Resolve user names for the audit log
   const userIds = Array.from(new Set(recentAuditLog.map((l) => l.userId).filter(Boolean))) as string[];
-  const resourceIds = recentAuditLog
-    .map((l) => l.resource)
-    .filter((r): r is string => !!r && r.startsWith("C")); // CUIDs start with C
 
-  const [userMap, memberMap] = await Promise.all([
-    userIds.length > 0
-      ? prisma.user
-          .findMany({ where: { id: { in: userIds } }, select: { id: true, name: true, role: true } })
-          .then((users) => Object.fromEntries(users.map((u) => [u.id, u])))
-      : Promise.resolve({} as Record<string, { name: string; role: string }>),
-    resourceIds.length > 0
-      ? prisma.member
-          .findMany({ where: { id: { in: resourceIds } }, select: { id: true, firstName: true, lastName: true } })
-          .then((members) => Object.fromEntries(members.map((m) => [m.id, `${m.firstName} ${m.lastName}`])))
-      : Promise.resolve({} as Record<string, string>),
-  ]);
+  const userMap = userIds.length > 0
+    ? Object.fromEntries(
+        (await prisma.user.findMany({
+          where: { id: { in: userIds } },
+          select: { id: true, name: true, role: true },
+        })).map((u) => [u.id, u])
+      )
+    : ({} as Record<string, { name: string; role: string }>);
+
+  // Resolve resource labels: use details JSON first (memberName, headline),
+  // then fall back to DB lookup for any remaining CUIDs
+  function getResourceLabel(entry: typeof recentAuditLog[number]): string | null {
+    if (!entry.resource) return null;
+
+    const details = entry.details as Record<string, unknown> | null;
+    if (details?.memberName) return details.memberName as string;
+    if (details?.headline) return details.headline as string;
+
+    // Known string resources — display as-is with title case
+    const knownResources = ["session", "members", "dashboard"];
+    const lower = entry.resource.toLowerCase();
+    if (knownResources.includes(lower)) {
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    }
+
+    return null; // hide raw CUIDs
+  }
 
   const enrichedAuditLog = recentAuditLog.map((entry) => ({
     ...entry,
     userName: entry.userId ? (userMap[entry.userId]?.name ?? "Unknown User") : "System",
     userRole: entry.userId ? (userMap[entry.userId]?.role ?? null) : null,
-    resourceLabel: entry.resource
-      ? (memberMap[entry.resource] ?? entry.resource)
-      : null,
+    resourceLabel: getResourceLabel(entry),
   }));
 
   return {

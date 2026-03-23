@@ -279,7 +279,33 @@ async function main() {
   console.log(`\nCreated ${contributionData.length} contributions`);
   console.log(`  This week giving: $${thisWeekGiving.toLocaleString()}`);
 
-  console.log("\nRefresh complete! Attendance and giving data updated with upward trends.");
+  // ─── Refresh Visitor Dates ──────────────────────────────
+  // Update visitor createdAt to this week so they show on the dashboard
+  const visitors = await prisma.member.findMany({
+    where: { churchId: church.id, membershipStatus: "VISITOR" },
+    select: { id: true, firstName: true, lastName: true },
+  });
+
+  const visitorDates = [
+    daysAgo(0), // today
+    daysAgo(1), // yesterday
+    daysAgo(0), // today
+    daysAgo(2), // 2 days ago
+    daysAgo(0), // today
+  ];
+
+  let updatedVisitors = 0;
+  for (let i = 0; i < visitors.length; i++) {
+    const date = visitorDates[i % visitorDates.length];
+    await prisma.member.update({
+      where: { id: visitors[i].id },
+      data: { createdAt: date, lastActivityAt: date },
+    });
+    updatedVisitors++;
+  }
+  console.log(`\nUpdated ${updatedVisitors} visitors with fresh dates`);
+
+  console.log("\nRefresh complete! Attendance, giving, and visitor data updated.");
 }
 
 main()
