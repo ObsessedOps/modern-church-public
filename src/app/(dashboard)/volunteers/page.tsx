@@ -39,7 +39,7 @@ export default async function VolunteersPage() {
       }
     })
   );
-  const multiTeamVolunteers = [...multiTeamMap.entries()].filter(([, teams]) => teams.length > 1);
+  const multiTeamVolunteers = Array.from(multiTeamMap.entries()).filter(([, teams]) => teams.length > 1);
 
   const topByHours = data.teams
     .flatMap((t) => t.positions)
