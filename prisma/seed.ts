@@ -382,14 +382,14 @@ async function main() {
   console.log("Created family member links");
 
   // ─── Service Summaries (12 weeks x 4 campuses = 48) ─────
-  // Growth formula: oldest week (12) is lowest, newest week (1) is highest (~2% growth/week)
-  // Jitter is kept small enough that it never causes a week-over-week decline
+  // Growth formula: oldest week (12) is lowest, newest week (1) is highest
+  // Steady upward trend — every week is higher than the last, no dips
   function growingCount(base: number, week: number, growthPerWeek: number): number {
     // week=12 is oldest (lowest), week=1 is newest (highest)
     const growth = (12 - week) * growthPerWeek;
-    // Jitter must be < half of growthPerWeek to prevent inversions
-    const maxJitter = Math.max(0, Math.floor(growthPerWeek * 0.3));
-    const jitter = maxJitter > 0 ? randomBetween(-maxJitter, maxJitter) : 0;
+    // Positive-only jitter so we never dip below prior week
+    const maxJitter = Math.max(0, Math.floor(growthPerWeek * 0.4));
+    const jitter = maxJitter > 0 ? randomBetween(0, maxJitter) : 0;
     return Math.max(1, Math.round(base + growth + jitter));
   }
 
@@ -397,52 +397,52 @@ async function main() {
   for (let week = 1; week <= 12; week++) {
     const serviceDate = sundayWeeksAgo(week);
 
-    // Downtown — base ~400 adults, growing ~5/week
+    // Downtown — base ~410 adults, growing ~7/week
     serviceSummaries.push({
       churchId: church.id,
       campusId: downtown.id,
       serviceDate,
       serviceTime: "10:00 AM",
       serviceType: ServiceType.WEEKEND,
-      adultCount: growingCount(400, week, 5),
-      childCount: growingCount(140, week, 3),
+      adultCount: growingCount(410, week, 7),
+      childCount: growingCount(148, week, 4),
       onlineCount: 0,
-      volunteerCount: growingCount(44, week, 1),
-      firstTimeCount: growingCount(3, week, 0.4),
+      volunteerCount: growingCount(48, week, 1.5),
+      firstTimeCount: growingCount(4, week, 0.5),
       totalCount: 0,
     });
 
-    // Westside — base ~240 adults, growing ~4/week
+    // Westside — base ~255 adults, growing ~6/week
     serviceSummaries.push({
       churchId: church.id,
       campusId: westside.id,
       serviceDate,
       serviceTime: "9:00 AM",
       serviceType: ServiceType.WEEKEND,
-      adultCount: growingCount(240, week, 4),
-      childCount: growingCount(80, week, 2),
+      adultCount: growingCount(255, week, 6),
+      childCount: growingCount(88, week, 3),
       onlineCount: 0,
-      volunteerCount: growingCount(28, week, 1),
-      firstTimeCount: growingCount(2, week, 0.3),
+      volunteerCount: growingCount(32, week, 1.2),
+      firstTimeCount: growingCount(3, week, 0.4),
       totalCount: 0,
     });
 
-    // North — base ~100 adults, growing ~3/week
+    // North — base ~115 adults, growing ~4/week
     serviceSummaries.push({
       churchId: church.id,
       campusId: north.id,
       serviceDate,
       serviceTime: "10:00 AM",
       serviceType: ServiceType.WEEKEND,
-      adultCount: growingCount(100, week, 3),
-      childCount: growingCount(30, week, 1.5),
+      adultCount: growingCount(115, week, 4),
+      childCount: growingCount(36, week, 2),
       onlineCount: 0,
-      volunteerCount: growingCount(14, week, 0.5),
-      firstTimeCount: growingCount(1, week, 0.2),
+      volunteerCount: growingCount(16, week, 0.8),
+      firstTimeCount: growingCount(2, week, 0.3),
       totalCount: 0,
     });
 
-    // Online — base ~650, growing ~8/week
+    // Online — base ~690, growing ~10/week
     serviceSummaries.push({
       churchId: church.id,
       campusId: online.id,
@@ -451,9 +451,9 @@ async function main() {
       serviceType: ServiceType.ONLINE,
       adultCount: 0,
       childCount: 0,
-      onlineCount: growingCount(650, week, 8),
-      volunteerCount: growingCount(8, week, 0.3),
-      firstTimeCount: growingCount(5, week, 0.8),
+      onlineCount: growingCount(690, week, 10),
+      volunteerCount: growingCount(10, week, 0.5),
+      firstTimeCount: growingCount(6, week, 1),
       totalCount: 0,
     });
   }
@@ -480,23 +480,23 @@ async function main() {
     m("James", "Robinson"), m("Daniel", "Garcia"), m("Marcus", "Williams"),
   ];
 
-  // Assign each giver a stable base amount so growth multiplier isn't overwhelmed by randomness
-  const giverBases = [350, 250, 300, 450, 200, 175, 225, 150, 275];
+  // Assign each giver a stable base amount — boosted for healthy giving numbers
+  const giverBases = [425, 300, 350, 500, 275, 225, 280, 200, 325];
   for (let gi = 0; gi < regularGivers.length; gi++) {
     const giver = regularGivers[gi];
     const giverBase = giverBases[gi % giverBases.length];
     // 3 months of regular giving — amounts grow each month (oldest month lowest)
     for (let monthOffset = 0; monthOffset < 3; monthOffset++) {
       // monthOffset 0 = this month (highest), 2 = oldest (lowest)
-      const growthMultiplier = 1 + (2 - monthOffset) * 0.05; // +10% for this month vs 2 months ago
+      const growthMultiplier = 1 + (2 - monthOffset) * 0.06; // +12% for this month vs 2 months ago
       for (let weekInMonth = 0; weekInMonth < 4; weekInMonth++) {
         const d = new Date();
         d.setMonth(d.getMonth() - monthOffset);
         d.setDate(7 + weekInMonth * 7);
         if (d > new Date()) continue;
 
-        // Small jitter (±5%) on the stable base, then apply growth
-        const jitter = 1 + (randomBetween(-5, 5) / 100);
+        // Positive-leaning jitter (0-5%) so giving never dips week to week
+        const jitter = 1 + (randomBetween(0, 5) / 100);
         contributionData.push({
           churchId: church.id,
           campusId: giver.primaryCampusId,
@@ -555,20 +555,22 @@ async function main() {
     });
   }
 
-  // Explicit this-week contributions (ensure Weekly Giving shows data)
+  // Explicit this-week contributions — strongest week yet to show upward trend
   const thisWeekGivers = [
-    { member: m("David", "Thompson"), amount: 350, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
-    { member: m("Lisa", "Thompson"), amount: 200, fund: "Missions", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
-    { member: m("Sarah", "Kim"), amount: 250, fund: "General", method: ContributionMethod.ACH, source: ContributionSource.VANCO },
-    { member: m("Carlos", "Martinez"), amount: 500, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
-    { member: m("Angela", "Williams"), amount: 300, fund: "General", method: ContributionMethod.ACH, source: ContributionSource.VANCO },
-    { member: m("James", "Robinson"), amount: 175, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
-    { member: m("Daniel", "Garcia"), amount: 150, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
-    { member: m("Maria", "Martinez"), amount: 200, fund: "Missions", method: ContributionMethod.CHECK, source: ContributionSource.CASH_CHECK },
-    { member: m("Marcus", "Williams"), amount: 275, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
-    { member: m("Rachel", "Davis"), amount: 100, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
-    { member: m("Chris", "Patterson"), amount: 50, fund: "General", method: ContributionMethod.CASH, source: ContributionSource.CASH_CHECK },
-    { member: m("Natalie", "Chen"), amount: 75, fund: "Youth Ministry", method: ContributionMethod.ONLINE, source: ContributionSource.VANCO },
+    { member: m("David", "Thompson"), amount: 475, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Lisa", "Thompson"), amount: 300, fund: "Missions", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Sarah", "Kim"), amount: 375, fund: "General", method: ContributionMethod.ACH, source: ContributionSource.VANCO },
+    { member: m("Carlos", "Martinez"), amount: 550, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Angela", "Williams"), amount: 350, fund: "General", method: ContributionMethod.ACH, source: ContributionSource.VANCO },
+    { member: m("James", "Robinson"), amount: 300, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Daniel", "Garcia"), amount: 225, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Maria", "Martinez"), amount: 250, fund: "Missions", method: ContributionMethod.CHECK, source: ContributionSource.CASH_CHECK },
+    { member: m("Marcus", "Williams"), amount: 350, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Rachel", "Davis"), amount: 175, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Chris", "Patterson"), amount: 100, fund: "General", method: ContributionMethod.CASH, source: ContributionSource.CASH_CHECK },
+    { member: m("Natalie", "Chen"), amount: 125, fund: "Youth Ministry", method: ContributionMethod.ONLINE, source: ContributionSource.VANCO },
+    { member: m("Sophia", "Garcia"), amount: 200, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Jason", "Rivera"), amount: 150, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
   ];
   for (const g of thisWeekGivers) {
     contributionData.push({

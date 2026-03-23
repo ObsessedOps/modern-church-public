@@ -1,6 +1,7 @@
 "use client";
 
-import { Activity } from "lucide-react";
+import { Activity, LogIn, Eye, FileText, Download, Bell, Edit3, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AuditLogEntry {
   id: string;
@@ -8,11 +9,24 @@ interface AuditLogEntry {
   action: string;
   resource: string | null;
   createdAt: Date;
+  userName: string;
+  userRole: string | null;
+  resourceLabel: string | null;
 }
 
 interface ActivityFeedProps {
   entries: AuditLogEntry[];
 }
+
+const ACTION_META: Record<string, { icon: LucideIcon; color: string; label: string }> = {
+  login: { icon: LogIn, color: "text-emerald-500", label: "Signed in" },
+  view_member: { icon: Eye, color: "text-blue-500", label: "Viewed" },
+  update_notes: { icon: Edit3, color: "text-amber-500", label: "Updated notes for" },
+  alert_reviewed: { icon: Bell, color: "text-violet-500", label: "Reviewed alert on" },
+  export_members: { icon: Download, color: "text-cyan-500", label: "Exported" },
+};
+
+const DEFAULT_META = { icon: FileText, color: "text-slate-400", label: null };
 
 function timeAgo(date: Date): string {
   const now = new Date();
@@ -28,8 +42,7 @@ function timeAgo(date: Date): string {
   return `${Math.floor(diffDays / 7)}w ago`;
 }
 
-function getInitial(name: string | null): string {
-  if (!name) return "?";
+function getInitials(name: string): string {
   return name
     .split(" ")
     .map((n) => n[0])
@@ -38,18 +51,15 @@ function getInitial(name: string | null): string {
     .toUpperCase();
 }
 
-function formatAction(action: string): string {
-  return action
+function formatRole(role: string): string {
+  return role
     .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function formatResource(resource: string): string {
-  return resource
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+function getActionKey(action: string): string {
+  return action.toLowerCase().replace(/\s+/g, "_");
 }
 
 export function ActivityFeed({ entries }: ActivityFeedProps) {
@@ -75,30 +85,58 @@ export function ActivityFeed({ entries }: ActivityFeedProps) {
         </div>
       ) : (
         <div className="space-y-3">
-          {entries.map((entry) => (
-            <div key={entry.id} className="flex items-start gap-3">
-              {/* Avatar */}
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-[10px] font-bold text-violet-600 dark:bg-violet-500/20 dark:text-violet-400">
-                {getInitial(entry.userId)}
-              </div>
+          {entries.map((entry) => {
+            const key = getActionKey(entry.action);
+            const meta = ACTION_META[key] ?? DEFAULT_META;
+            const Icon = meta.icon;
+            const actionLabel = meta.label ?? entry.action.replace(/_/g, " ").toLowerCase();
 
-              {/* Content */}
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-slate-700 dark:text-dark-200">
-                  <span className="font-medium text-slate-900 dark:text-dark-50">
-                    {entry.userId ?? "System"}
-                  </span>{" "}
-                  {formatAction(entry.action).toLowerCase()}{" "}
-                  <span className="font-medium text-slate-700 dark:text-dark-100">
-                    {entry.resource ? formatResource(entry.resource) : ""}
-                  </span>
-                </p>
-                <p className="mt-0.5 text-[10px] text-slate-400 dark:text-dark-400" suppressHydrationWarning>
-                  {timeAgo(entry.createdAt)}
-                </p>
+            // Build the description line
+            const showResource =
+              entry.resourceLabel &&
+              entry.resourceLabel !== "Session" &&
+              key !== "login";
+
+            return (
+              <div key={entry.id} className="flex items-start gap-3">
+                {/* Avatar */}
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-[10px] font-bold text-violet-600 dark:bg-violet-500/20 dark:text-violet-400">
+                  {getInitials(entry.userName)}
+                </div>
+
+                {/* Content */}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-slate-700 dark:text-dark-200">
+                    <span className="font-semibold text-slate-900 dark:text-dark-50">
+                      {entry.userName}
+                    </span>{" "}
+                    <span className="text-slate-500 dark:text-dark-300">
+                      {actionLabel}
+                    </span>
+                    {showResource && (
+                      <>
+                        {" "}
+                        <span className="font-medium text-slate-800 dark:text-dark-100">
+                          {entry.resourceLabel}
+                        </span>
+                      </>
+                    )}
+                  </p>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <Icon className={cn("h-3 w-3", meta.color)} />
+                    {entry.userRole && (
+                      <span className="text-[10px] text-slate-400 dark:text-dark-400">
+                        {formatRole(entry.userRole)}
+                      </span>
+                    )}
+                    <span className="text-[10px] text-slate-400 dark:text-dark-400" suppressHydrationWarning>
+                      {timeAgo(entry.createdAt)}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

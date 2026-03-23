@@ -128,6 +128,34 @@ export async function getDashboardData(churchId: string, campusId?: string) {
     }),
   ]);
 
+  // Resolve user names and member names for the audit log
+  const userIds = [...new Set(recentAuditLog.map((l) => l.userId).filter(Boolean))] as string[];
+  const resourceIds = recentAuditLog
+    .map((l) => l.resource)
+    .filter((r): r is string => !!r && r.startsWith("C")); // CUIDs start with C
+
+  const [userMap, memberMap] = await Promise.all([
+    userIds.length > 0
+      ? prisma.user
+          .findMany({ where: { id: { in: userIds } }, select: { id: true, name: true, role: true } })
+          .then((users) => Object.fromEntries(users.map((u) => [u.id, u])))
+      : Promise.resolve({} as Record<string, { name: string; role: string }>),
+    resourceIds.length > 0
+      ? prisma.member
+          .findMany({ where: { id: { in: resourceIds } }, select: { id: true, firstName: true, lastName: true } })
+          .then((members) => Object.fromEntries(members.map((m) => [m.id, `${m.firstName} ${m.lastName}`])))
+      : Promise.resolve({} as Record<string, string>),
+  ]);
+
+  const enrichedAuditLog = recentAuditLog.map((entry) => ({
+    ...entry,
+    userName: entry.userId ? (userMap[entry.userId]?.name ?? "Unknown User") : "System",
+    userRole: entry.userId ? (userMap[entry.userId]?.role ?? null) : null,
+    resourceLabel: entry.resource
+      ? (memberMap[entry.resource] ?? entry.resource)
+      : null,
+  }));
+
   return {
     memberCount,
     activeMemberCount,
@@ -140,7 +168,7 @@ export async function getDashboardData(churchId: string, campusId?: string) {
     visitorCount,
     activeGroupCount,
     volunteerCount,
-    recentAuditLog,
+    recentAuditLog: enrichedAuditLog,
   };
 }
 

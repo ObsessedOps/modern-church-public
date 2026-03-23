@@ -155,15 +155,6 @@ export default async function CommandCenterPage({
         <QuickActions />
       </div>
 
-      {/* ── Grace AI Briefing (Summary + Highlights) ────── */}
-      <GraceBriefingSummary data={briefing} role={session.role} />
-
-      {/* ── Grace AI Trend Insights ──────────────────────── */}
-      <TrendInsights role={session.role} />
-
-      {/* ── Grace AI Proactive Nudges ──────────────────── */}
-      <GraceNudges role={session.role} />
-
       {/* ── KPI Cards ────────────────────────────────────── */}
       <KpiSection
         cards={[
@@ -291,6 +282,15 @@ export default async function CommandCenterPage({
             : []),
         ]}
       />
+
+      {/* ── Grace AI Briefing (Summary + Highlights) ────── */}
+      <GraceBriefingSummary data={briefing} role={session.role} />
+
+      {/* ── Grace AI Trend Insights ──────────────────────── */}
+      <TrendInsights role={session.role} />
+
+      {/* ── Grace AI Proactive Nudges ──────────────────── */}
+      <GraceNudges role={session.role} />
 
       {/* ── Charts ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
