@@ -1,0 +1,16 @@
+{
+  "name": "Modern.Church",
+  "short_name": "Modern.Church",
+  "description": "AI-powered church operations intelligence",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

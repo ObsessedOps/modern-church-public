@@ -279,31 +279,82 @@ async function main() {
   console.log(`\nCreated ${contributionData.length} contributions`);
   console.log(`  This week giving: $${thisWeekGiving.toLocaleString()}`);
 
-  // ─── Refresh Visitor Dates ──────────────────────────────
-  // Update visitor createdAt to this week so they show on the dashboard
-  const visitors = await prisma.member.findMany({
-    where: { churchId: church.id, membershipStatus: "VISITOR" },
-    select: { id: true, firstName: true, lastName: true },
-  });
-
-  const visitorDates = [
-    daysAgo(0), // today
-    daysAgo(1), // yesterday
-    daysAgo(0), // today
-    daysAgo(2), // 2 days ago
-    daysAgo(0), // today
+  // ─── Refresh Visitors ───────────────────────────────────
+  // Ensure we have ~32 visitors; create any missing ones, then refresh dates
+  const newVisitors = [
+    { firstName: "Hannah", lastName: "Cole", email: "hannah.c@email.com", phone: "(512) 555-1031" },
+    { firstName: "Trevor", lastName: "Nguyen", email: "trevor.n@email.com", phone: "(512) 555-1032" },
+    { firstName: "Olivia", lastName: "Grant", email: "olivia.g@email.com", phone: "(512) 555-1033" },
+    { firstName: "Marcus", lastName: "Reed", email: "marcus.r@email.com", phone: "(512) 555-1034" },
+    { firstName: "Alyssa", lastName: "Moreno", email: "alyssa.m@email.com", phone: "(512) 555-1035" },
+    { firstName: "Jacob", lastName: "Barnes", email: "jacob.b@email.com", phone: "(512) 555-1036" },
+    { firstName: "Grace", lastName: "Hoffman", email: "grace.h@email.com", phone: "(512) 555-1037" },
+    { firstName: "Isaiah", lastName: "Crawford", email: "isaiah.c@email.com", phone: "(512) 555-1038" },
+    { firstName: "Leah", lastName: "Sullivan", email: "leah.s@email.com", phone: "(512) 555-1039" },
+    { firstName: "Caleb", lastName: "Fernandez", email: "caleb.f@email.com", phone: "(512) 555-1040" },
+    { firstName: "Naomi", lastName: "Perry", email: "naomi.p@email.com", phone: "(512) 555-1041" },
+    { firstName: "Ryan", lastName: "Ortiz", email: "ryan.o@email.com", phone: "(512) 555-1042" },
+    { firstName: "Abigail", lastName: "Ruiz", email: "abigail.r@email.com", phone: "(512) 555-1043" },
+    { firstName: "Noah", lastName: "Fleming", email: "noah.f@email.com", phone: "(512) 555-1044" },
+    { firstName: "Chloe", lastName: "Jensen", email: "chloe.j@email.com", phone: "(512) 555-1045" },
+    { firstName: "Elijah", lastName: "Harper", email: "elijah.h@email.com", phone: "(512) 555-1046" },
+    { firstName: "Lily", lastName: "Walsh", email: "lily.w@email.com", phone: "(512) 555-1047" },
+    { firstName: "Luke", lastName: "Powers", email: "luke.p@email.com", phone: "(512) 555-1048" },
+    { firstName: "Zoe", lastName: "Reeves", email: "zoe.r@email.com", phone: "(512) 555-1049" },
+    { firstName: "Nathan", lastName: "Cross", email: "nathan.c@email.com", phone: "(512) 555-1050" },
+    { firstName: "Maya", lastName: "Steele", email: "maya.s@email.com", phone: "(512) 555-1051" },
+    { firstName: "Jaden", lastName: "Price", email: "jaden.p@email.com", phone: "(512) 555-1052" },
+    { firstName: "Savannah", lastName: "Blake", email: "savannah.b@email.com", phone: "(512) 555-1053" },
+    { firstName: "Aaron", lastName: "Hunt", email: "aaron.h@email.com", phone: "(512) 555-1054" },
+    { firstName: "Gabriella", lastName: "Fox", email: "gabriella.f@email.com", phone: "(512) 555-1055" },
+    { firstName: "Tyler", lastName: "Mendez", email: "tyler.m@email.com", phone: "(512) 555-1056" },
+    { firstName: "Autumn", lastName: "Bell", email: "autumn.b@email.com", phone: "(512) 555-1057" },
   ];
 
-  let updatedVisitors = 0;
+  const campusIds = [downtown.id, westside.id, north.id];
+  let created = 0;
+  for (let i = 0; i < newVisitors.length; i++) {
+    const v = newVisitors[i];
+    const exists = await prisma.member.findFirst({
+      where: { churchId: church.id, email: v.email },
+    });
+    if (!exists) {
+      await prisma.member.create({
+        data: {
+          churchId: church.id,
+          primaryCampusId: campusIds[i % campusIds.length],
+          firstName: v.firstName,
+          lastName: v.lastName,
+          email: v.email,
+          phone: v.phone,
+          membershipStatus: "VISITOR",
+          engagementScore: 5,
+          engagementTier: "CASUAL",
+          tags: ["first-time"],
+          createdAt: daysAgo(0),
+          lastActivityAt: daysAgo(0),
+        },
+      });
+      created++;
+    }
+  }
+  if (created > 0) console.log(`\nCreated ${created} new visitors`);
+
+  // Update ALL visitor dates to this week
+  const visitors = await prisma.member.findMany({
+    where: { churchId: church.id, membershipStatus: "VISITOR" },
+    select: { id: true },
+  });
+
+  const visitorDateOptions = [daysAgo(0), daysAgo(1), daysAgo(0), daysAgo(2), daysAgo(0), daysAgo(1), daysAgo(0)];
   for (let i = 0; i < visitors.length; i++) {
-    const date = visitorDates[i % visitorDates.length];
+    const date = visitorDateOptions[i % visitorDateOptions.length];
     await prisma.member.update({
       where: { id: visitors[i].id },
       data: { createdAt: date, lastActivityAt: date },
     });
-    updatedVisitors++;
   }
-  console.log(`\nUpdated ${updatedVisitors} visitors with fresh dates`);
+  console.log(`Updated ${visitors.length} visitors with fresh dates`);
 
   console.log("\nRefresh complete! Attendance, giving, and visitor data updated.");
 }
