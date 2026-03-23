@@ -17,6 +17,7 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
   const [serve, setServe] = useState("");
   const [prayer, setPrayer] = useState("");
   const [consulting, setConsulting] = useState(false);
+  const [consultingDetails, setConsultingDetails] = useState("");
   const [heardFrom, setHeardFrom] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -61,6 +62,7 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
           serve: serve.trim(),
           prayer: prayer.trim(),
           consulting,
+          consultingDetails: consultingDetails.trim(),
           heardFrom: heardFrom.trim(),
           _hp: honeypot,
           _ts: openedAt,
@@ -269,6 +271,16 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
                   </p>
                 </div>
               </button>
+
+              {consulting && (
+                <textarea
+                  value={consultingDetails}
+                  onChange={(e) => setConsultingDetails(e.target.value)}
+                  placeholder="Tell us a little about what you're looking for — tech strategy, staff training, workflow optimization, etc."
+                  rows={2}
+                  className="w-full resize-none rounded-xl border border-violet-300 bg-violet-50/50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-violet-400 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-dark-50 dark:placeholder:text-violet-400/50 dark:focus:border-violet-500 dark:focus:bg-dark-600"
+                />
+              )}
 
               {/* Honeypot — hidden from humans, bots auto-fill it */}
               <div className="absolute -left-[9999px]" aria-hidden="true">

@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { name, email, church, role, serve, prayer, consulting, heardFrom, _hp, _ts } = await req.json();
+    const { name, email, church, role, serve, prayer, consulting, consultingDetails, heardFrom, _hp, _ts } = await req.json();
 
     // Honeypot check — bots fill hidden fields
     if (_hp) {
@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
       serve: serve ? esc(serve) : "",
       prayer: prayer ? esc(prayer) : "",
       heardFrom: heardFrom ? esc(heardFrom) : "",
+      consultingDetails: consultingDetails ? esc(consultingDetails) : "",
     };
 
     await resend.emails.send({
@@ -112,8 +113,9 @@ export async function POST(req: NextRequest) {
               </tr>` : ""}
             </table>
             ${consulting ? `
-            <div style="margin-top: 16px; padding: 10px 16px; background: #f5f3ff; border-radius: 8px; border: 1px solid #ddd6fe;">
+            <div style="margin-top: 16px; padding: 12px 16px; background: #f5f3ff; border-radius: 8px; border: 1px solid #ddd6fe;">
               <p style="color: #7c3aed; font-size: 13px; font-weight: 600; margin: 0;">Interested in Consulting Services</p>
+              ${s.consultingDetails ? `<p style="color: #4c1d95; font-size: 13px; margin: 8px 0 0 0; line-height: 1.5;">${s.consultingDetails}</p>` : ""}
             </div>` : ""}
             ${s.serve ? `
             <div style="margin-top: 16px; padding: 12px 16px; background: #f1f5f9; border-radius: 8px;">
