@@ -3,7 +3,7 @@ import { can } from "@/lib/rbac";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { getGroups } from "@/lib/queries";
 import { redirect } from "next/navigation";
-import { Users, Heart, Activity, AlertTriangle } from "lucide-react";
+import { Users, Heart, Activity, AlertTriangle, Sparkles, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TYPE_COLORS: Record<string, string> = {
@@ -30,6 +30,59 @@ export default async function GroupsPage() {
     ? Math.round((groups.reduce((sum, g) => sum + g.healthScore, 0) / groups.length) * 10) / 10
     : 0;
   const needsAttention = groups.filter((g) => g.healthScore < 50 && g.isActive).length;
+
+  // Compute group-specific insight data
+  const activeGroups = groups.filter((g) => g.isActive);
+  const healthyGroups = activeGroups.filter((g) => g.healthScore >= 70);
+  const atRiskGroups = activeGroups.filter((g) => g.healthScore < 40);
+  const inactiveGroups = groups.filter((g) => !g.isActive);
+  const smallGroups = activeGroups.filter((g) => g._count.memberships <= 3);
+  const largeGroups = activeGroups.filter((g) => g._count.memberships >= 15);
+  const avgMembers = activeGroups.length > 0
+    ? Math.round(activeGroups.reduce((s, g) => s + g._count.memberships, 0) / activeGroups.length)
+    : 0;
+
+  // Grace AI Group Insights
+  const groupInsights = [
+    {
+      icon: TrendingUp,
+      color: "emerald",
+      title: "Group Health Trending Well",
+      detail: `${healthyGroups.length} of ${activeGroups.length} active groups have a health score above 70. Average health across all groups is ${avgHealth} — ${avgHealth >= 65 ? "a strong foundation for discipleship growth" : "there is room to strengthen engagement and connection"}.`,
+    },
+    {
+      icon: Users,
+      color: "blue",
+      title: "Participation & Membership",
+      detail: `${totalMembers.toLocaleString()} people are connected across ${groups.length} groups, averaging ${avgMembers} members per active group. ${largeGroups.length > 0 ? `${largeGroups.length} group${largeGroups.length > 1 ? "s have" : " has"} 15+ members — consider splitting for deeper community.` : "Group sizes are healthy for meaningful connection."}`,
+    },
+    {
+      icon: AlertTriangle,
+      color: "amber",
+      title: `${atRiskGroups.length} At-Risk Group${atRiskGroups.length !== 1 ? "s" : ""} Identified`,
+      detail: `${atRiskGroups.length > 0 ? `${atRiskGroups.slice(0, 3).map((g) => g.name).join(", ")}${atRiskGroups.length > 3 ? ` and ${atRiskGroups.length - 3} more` : ""} scored below 40.` : "No groups are currently in critical health."} ${inactiveGroups.length > 0 ? `${inactiveGroups.length} group${inactiveGroups.length > 1 ? "s are" : " is"} marked inactive and may need follow-up or archival.` : ""}`,
+    },
+    {
+      icon: Heart,
+      color: "rose",
+      title: "Leader Health & Support",
+      detail: `${smallGroups.length > 0 ? `${smallGroups.length} group${smallGroups.length > 1 ? "s have" : " has"} 3 or fewer members — leaders may feel discouraged. Consider pairing them with a coach or merging into stronger groups.` : "All active groups have healthy membership levels."} Proactively checking in with leaders of lower-scoring groups can prevent burnout.`,
+    },
+    {
+      icon: Sparkles,
+      color: "violet",
+      title: "New Member Connection Opportunity",
+      detail: `With ${totalMembers.toLocaleString()} members in groups, focus on connecting newcomers within their first 30 days. ${needsAttention > 0 ? `Strengthening the ${needsAttention} group${needsAttention > 1 ? "s" : ""} needing attention will create more welcoming entry points.` : "Your groups are well-positioned to receive new members."}`,
+    },
+  ];
+
+  const insightColors: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+    emerald: { border: "border-emerald-500/20", bg: "bg-emerald-500/5", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+    blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+    amber: { border: "border-amber-500/20", bg: "bg-amber-500/5", iconBg: "bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+    violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", iconBg: "bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+    rose: { border: "border-rose-500/20", bg: "bg-rose-500/5", iconBg: "bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+  };
 
   return (
     <div className="space-y-6">
@@ -87,6 +140,52 @@ export default async function GroupsPage() {
               <p className="text-xl font-bold text-slate-900 dark:text-dark-50">{needsAttention}</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Grace AI Group Insights */}
+      <div>
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600/10">
+            <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+            Grace AI Group Insights
+          </h3>
+          <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
+            AI-POWERED
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {groupInsights.map((insight) => {
+            const Icon = insight.icon;
+            const style = insightColors[insight.color];
+            return (
+              <div
+                key={insight.title}
+                className={cn(
+                  "rounded-xl border p-4 transition-colors",
+                  style.border,
+                  style.bg,
+                  "bg-white dark:bg-dark-800"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", style.iconBg)}>
+                    <Icon className={cn("h-4 w-4", style.iconColor)} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-900 dark:text-dark-50">
+                      {insight.title}
+                    </p>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-dark-200">
+                      {insight.detail}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

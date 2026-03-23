@@ -260,6 +260,7 @@ export async function getMembers(churchId: string) {
           groupMemberships: true,
           volunteerPositions: true,
           lifeEvents: true,
+          growthTracks: true,
         },
       },
     },

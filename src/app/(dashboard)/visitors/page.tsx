@@ -13,6 +13,8 @@ import {
   MessageSquare,
   Sparkles,
   Clock,
+  TrendingUp,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MessageActions } from "@/components/messaging/MessageActions";
@@ -73,6 +75,78 @@ export default async function VisitorsPage() {
       ? Math.round(((stageCounts.connected + stageCounts.growing) / totalVisitors) * 100)
       : 0;
 
+  // Compute visitor insight data
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  const visitorsThisWeek = visitors.filter((v) => new Date(v.createdAt) >= oneWeekAgo).length;
+  const visitorsThisMonth = visitors.filter((v) => new Date(v.createdAt) >= oneMonthAgo).length;
+
+  const returningCount = staged.filter((v) => v._count.attendanceRecords > 1).length;
+  const retentionRate = totalVisitors > 0 ? Math.round((returningCount / totalVisitors) * 100) : 0;
+
+  const contactedCount = staged.filter((v) => v._count.workflowExecutions > 0).length;
+  const notContactedCount = totalVisitors - contactedCount;
+
+  // Campus distribution
+  const campusCounts: Record<string, number> = {};
+  visitors.forEach((v) => {
+    const name = v.primaryCampus?.name ?? "Unassigned";
+    campusCounts[name] = (campusCounts[name] ?? 0) + 1;
+  });
+  const topCampuses = Object.entries(campusCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+
+  const pipelineConnected = stageCounts.connected + stageCounts.growing;
+
+  // Grace AI Visitor Insights
+  const visitorInsights = [
+    {
+      icon: TrendingUp,
+      color: "emerald",
+      title: `${visitorsThisMonth} Visitors This Month`,
+      detail: `${visitorsThisWeek} new visitors this week and ${visitorsThisMonth} over the past 30 days. ${visitorsThisWeek >= 3 ? "Visitor volume is trending up — great momentum from your invite culture." : "Consider a targeted invite initiative to boost first-time guest traffic."}`,
+    },
+    {
+      icon: Users,
+      color: "blue",
+      title: `${retentionRate}% Visitor Retention`,
+      detail: `${returningCount} of ${totalVisitors} visitors have returned at least once. ${retentionRate >= 30 ? "Strong retention signal — your follow-up process is working." : "Retention is below 30%. Consider a personal touch in the first 48 hours after a visit."}`,
+    },
+    {
+      icon: Mail,
+      color: notContactedCount > 0 ? "amber" : "emerald",
+      title: notContactedCount > 0 ? `${notContactedCount} Visitors Need Follow-Up` : "All Visitors Contacted",
+      detail: notContactedCount > 0
+        ? `${contactedCount} of ${totalVisitors} visitors have been reached through a follow-up workflow. ${notContactedCount} still haven't been contacted — prioritize reaching out within 24-48 hours of their visit.`
+        : `Every visitor has been contacted through a follow-up workflow. Excellent coverage — keep it up!`,
+    },
+    {
+      icon: MapPin,
+      color: "violet",
+      title: `Top Campus: ${topCampuses.length > 0 ? topCampuses[0][0] : "N/A"}`,
+      detail: topCampuses.length > 0
+        ? `Campus breakdown: ${topCampuses.map(([name, count]) => `${name} (${count})`).join(", ")}. ${topCampuses.length > 1 && topCampuses[0][1] > topCampuses[1][1] * 2 ? "One campus is significantly outperforming — consider sharing their guest experience strategy." : "Visitor distribution is healthy across campuses."}`
+        : "No campus data available yet. Assign campuses to visitors to unlock location insights.",
+    },
+    {
+      icon: ArrowRight,
+      color: "rose",
+      title: `${conversionRate}% Connect-Card-to-Member Pipeline`,
+      detail: `${pipelineConnected} of ${totalVisitors} visitors have progressed to Connected or Growth Track stages. ${conversionRate >= 20 ? "Your assimilation pathway is performing well." : "Consider adding a newcomer small group or connection event to accelerate the visitor-to-member journey."}`,
+    },
+  ];
+
+  const insightColors: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+    emerald: { border: "border-emerald-500/20", bg: "bg-emerald-500/5", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+    blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+    amber: { border: "border-amber-500/20", bg: "bg-amber-500/5", iconBg: "bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+    violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", iconBg: "bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+    rose: { border: "border-rose-500/20", bg: "bg-rose-500/5", iconBg: "bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -123,6 +197,52 @@ export default async function VisitorsPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* ── Grace AI Visitor Insights ─────────────────────── */}
+      <div>
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600/10">
+            <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+            Grace AI Visitor Insights
+          </h3>
+          <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
+            AI-POWERED
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {visitorInsights.map((insight) => {
+            const Icon = insight.icon;
+            const style = insightColors[insight.color];
+            return (
+              <div
+                key={insight.title}
+                className={cn(
+                  "rounded-xl border p-4 transition-colors",
+                  style.border,
+                  style.bg,
+                  "bg-white dark:bg-dark-800"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", style.iconBg)}>
+                    <Icon className={cn("h-4 w-4", style.iconColor)} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-900 dark:text-dark-50">
+                      {insight.title}
+                    </p>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-dark-200">
+                      {insight.detail}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Visitor Cards ────────────────────────────────── */}

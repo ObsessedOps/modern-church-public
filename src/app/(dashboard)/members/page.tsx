@@ -2,8 +2,9 @@ import { getServerSession } from "@/lib/server-auth";
 import { can } from "@/lib/rbac";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { getMembers } from "@/lib/queries";
-import { Users, Search } from "lucide-react";
+import { Users, Search, Sparkles, TrendingUp, AlertTriangle, Heart, Footprints } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { MessageActions } from "@/components/messaging/MessageActions";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -50,6 +51,71 @@ export default async function CongregationPage() {
   if (!can(session, 'members:view')) return <AccessDenied />;
   const members = await getMembers(session.churchId);
 
+  // Compute member insights
+  const champions = members.filter((m) => m.engagementTier === "CHAMPION");
+  const engaged = members.filter((m) => m.engagementTier === "ENGAGED");
+  const atRisk = members.filter((m) => m.engagementTier === "AT_RISK");
+  const disengaged = members.filter((m) => m.engagementTier === "DISENGAGED");
+  const healthyCount = champions.length + engaged.length;
+  const concernCount = atRisk.length + disengaged.length;
+  const healthyPct = members.length > 0 ? ((healthyCount / members.length) * 100).toFixed(0) : "0";
+
+  // New member momentum — joined in last 90 days
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+  const newMembers = members.filter((m) => m.memberSince && new Date(m.memberSince) >= ninetyDaysAgo);
+
+  // At-risk names (up to 3)
+  const atRiskNames = atRisk.slice(0, 3).map((m) => `${m.firstName} ${m.lastName}`);
+
+  // Family connections
+  const withFamily = members.filter((m) => m.familyUnitId != null);
+  const soloMembers = members.filter((m) => m.familyUnitId == null);
+  const familyPct = members.length > 0 ? ((withFamily.length / members.length) * 100).toFixed(0) : "0";
+
+  // Growth track pipeline
+  const inGrowthTrack = members.filter((m) => m._count.growthTracks > 0);
+
+  const memberInsights = [
+    {
+      icon: TrendingUp,
+      color: "emerald",
+      title: `${healthyPct}% Engagement Health`,
+      detail: `${healthyCount} members are Champions or Engaged, while ${concernCount} are At-Risk or Disengaged. ${healthyCount > concernCount ? "Your congregation is trending healthy — keep investing in connection points." : "Consider launching targeted re-engagement campaigns for the at-risk segment."}`,
+    },
+    {
+      icon: Sparkles,
+      color: "blue",
+      title: `${newMembers.length} New Members in 90 Days`,
+      detail: `${newMembers.length > 0 ? `${newMembers.slice(0, 3).map((m) => m.firstName).join(", ")}${newMembers.length > 3 ? ` and ${newMembers.length - 3} others` : ""} joined recently.` : "No new members in the last 90 days."} ${newMembers.length >= 5 ? "Momentum is strong — make sure your assimilation pathway is keeping up." : "Consider a guest follow-up campaign to boost new member conversion."}`,
+    },
+    {
+      icon: AlertTriangle,
+      color: "amber",
+      title: `${atRisk.length} At-Risk Member${atRisk.length !== 1 ? "s" : ""} Need Attention`,
+      detail: `${atRiskNames.length > 0 ? `${atRiskNames.join(", ")}${atRisk.length > 3 ? ` and ${atRisk.length - 3} more` : ""} show declining engagement.` : "No at-risk members detected."} ${atRisk.length > 0 ? "A personal phone call or coffee invite from a group leader could make the difference." : "Great job keeping everyone connected!"}`,
+    },
+    {
+      icon: Heart,
+      color: "rose",
+      title: `${familyPct}% Connected to Family Units`,
+      detail: `${withFamily.length} members belong to a family unit while ${soloMembers.length} are unlinked. ${soloMembers.length > 0 ? "Review solo records — some may be family members who haven't been connected yet, which affects household giving and communication accuracy." : "All members are linked to family units."}`,
+    },
+    {
+      icon: Footprints,
+      color: "violet",
+      title: `${inGrowthTrack.length} in Growth Track Pipeline`,
+      detail: `${inGrowthTrack.length > 0 ? `${inGrowthTrack.length} member${inGrowthTrack.length !== 1 ? "s are" : " is"} actively progressing through the discipleship pathway.` : "No members are currently in a growth track."} ${members.length > 0 && inGrowthTrack.length < members.length * 0.2 ? "Less than 20% of your congregation is in a growth track — consider promoting the next cohort from the pulpit." : "Healthy pipeline participation."}`,
+    },
+  ];
+
+  const insightColors: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+    emerald: { border: "border-emerald-500/20", bg: "bg-emerald-500/5", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+    blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+    amber: { border: "border-amber-500/20", bg: "bg-amber-500/5", iconBg: "bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+    violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", iconBg: "bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+    rose: { border: "border-rose-500/20", bg: "bg-rose-500/5", iconBg: "bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -78,6 +144,52 @@ export default async function CongregationPage() {
         <p className="mt-1 px-1 text-xs text-slate-400 dark:text-dark-400">
           Client-side search will be enabled with a search component.
         </p>
+      </div>
+
+      {/* Grace AI Member Insights */}
+      <div>
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600/10">
+            <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+            Grace AI Member Insights
+          </h3>
+          <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
+            AI-POWERED
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {memberInsights.map((insight) => {
+            const Icon = insight.icon;
+            const style = insightColors[insight.color];
+            return (
+              <div
+                key={insight.title}
+                className={cn(
+                  "rounded-xl border p-4 transition-colors",
+                  style.border,
+                  style.bg,
+                  "bg-white dark:bg-dark-800"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", style.iconBg)}>
+                    <Icon className={cn("h-4 w-4", style.iconColor)} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-900 dark:text-dark-50">
+                      {insight.title}
+                    </p>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-dark-200">
+                      {insight.detail}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Members Table */}
