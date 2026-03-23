@@ -9,9 +9,9 @@ import {
   Users,
   Flame,
   X,
-  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface Nudge {
@@ -218,20 +218,19 @@ export function GraceNudges({ role = "SENIOR_PASTOR" }: { role?: string }) {
         const Icon = nudge.icon;
         const style = COLOR_STYLES[nudge.color];
 
-        return (
-          <div
-            key={nudge.id}
-            className={cn(
-              "group relative rounded-xl border p-4 transition-all duration-500",
-              style.border,
-              style.bg,
-              visible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
-            )}
-            style={{ transitionDelay: `${(i + 1) * 200}ms` }}
-          >
+        const cardClasses = cn(
+          "group relative rounded-xl border p-4 transition-all duration-500",
+          style.border,
+          style.bg,
+          visible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4",
+          nudge.action?.href && "hover:shadow-md hover:scale-[1.01] cursor-pointer"
+        );
+
+        const cardContent = (
+          <>
             <button
-              onClick={() => setDismissed((prev) => { const next = new Set(prev); next.add(nudge.id); return next; })}
-              className="absolute right-3 top-3 rounded-full p-1 text-slate-400 opacity-0 transition-opacity hover:bg-slate-200/50 hover:text-slate-600 group-hover:opacity-100 dark:hover:bg-dark-600 dark:hover:text-dark-200"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDismissed((prev) => { const next = new Set(prev); next.add(nudge.id); return next; }); }}
+              className="absolute right-3 top-3 z-10 rounded-full p-1 text-slate-400 opacity-0 transition-opacity hover:bg-slate-200/50 hover:text-slate-600 group-hover:opacity-100 dark:hover:bg-dark-600 dark:hover:text-dark-200"
             >
               <X className="h-3 w-3" />
             </button>
@@ -252,17 +251,27 @@ export function GraceNudges({ role = "SENIOR_PASTOR" }: { role?: string }) {
                 <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-dark-200">
                   {nudge.message}
                 </p>
-                {nudge.action && (
-                  <a
-                    href={nudge.action.href}
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-violet-600 transition-colors hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
-                  >
-                    {nudge.action.label}
-                    <ChevronRight className="h-3 w-3" />
-                  </a>
-                )}
               </div>
             </div>
+          </>
+        );
+
+        return nudge.action?.href ? (
+          <Link
+            key={nudge.id}
+            href={nudge.action.href}
+            className={cn(cardClasses, "block no-underline")}
+            style={{ transitionDelay: `${(i + 1) * 200}ms` }}
+          >
+            {cardContent}
+          </Link>
+        ) : (
+          <div
+            key={nudge.id}
+            className={cardClasses}
+            style={{ transitionDelay: `${(i + 1) * 200}ms` }}
+          >
+            {cardContent}
           </div>
         );
       })}

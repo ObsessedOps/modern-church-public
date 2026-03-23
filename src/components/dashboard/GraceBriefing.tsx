@@ -171,6 +171,7 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
       value: data.attendance.current > 0 ? `${data.attendance.delta >= 0 ? "+" : ""}${data.attendance.delta}%` : "—",
       detail: `${data.attendance.current.toLocaleString()} total this week`,
       color: data.attendance.delta >= 0 ? "emerald" : "rose",
+      href: "/analytics",
     },
     {
       id: "visitors",
@@ -179,6 +180,7 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
       value: `${data.visitors} guests`,
       detail: `New visitors this week`,
       color: "blue",
+      href: "/visitors",
     },
     {
       id: "volunteers",
@@ -187,6 +189,7 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
       value: `${data.volunteerFillRate}% filled`,
       detail: `${data.filledPositions} of ${data.totalPositions} positions active`,
       color: data.volunteerFillRate >= 85 ? "emerald" : "amber",
+      href: "/volunteers",
     },
     {
       id: "alerts",
@@ -195,6 +198,7 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
       value: String(data.alerts.length),
       detail: data.alerts.length > 0 ? `Highest: ${data.alerts[0].headline.slice(0, 50)}` : "No alerts — all clear",
       color: data.alerts.length >= 3 ? "rose" : data.alerts.length > 0 ? "amber" : "emerald",
+      href: "/alerts",
     },
     {
       id: "pathways",
@@ -203,6 +207,7 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
       value: `${data.pathways.active} active`,
       detail: `${data.pathways.executionsThisWeek} triggered this week`,
       color: data.pathways.executionsThisWeek > 0 ? "violet" : "blue",
+      href: "/pathways",
     },
   ];
 
@@ -302,10 +307,11 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
           {highlights.map((h) => {
             const Icon = h.icon;
             return (
-              <div
+              <Link
                 key={h.label}
+                href={h.href}
                 className={cn(
-                  "rounded-xl border p-3 transition-colors",
+                  "block cursor-pointer rounded-xl border p-3 transition-all hover:scale-[1.02]",
                   h.color === "emerald" && "border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10",
                   h.color === "blue" && "border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10",
                   h.color === "amber" && "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10",
@@ -343,7 +349,7 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
                 <p className="mt-1 text-xs text-slate-600 dark:text-dark-200">
                   {h.detail}
                 </p>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -385,9 +391,10 @@ export function GraceBriefingDetails({ data }: { data: BriefingData }) {
                 const style = severityStyles[alert.severity] ?? severityStyles.LOW;
                 const href = alertHrefMap[alert.eventType] ?? "/alerts";
                 return (
-                  <div
+                  <Link
                     key={alert.id}
-                    className={cn("rounded-lg border p-3", style.border, style.bg)}
+                    href={href}
+                    className={cn("block cursor-pointer rounded-lg border p-3 transition-all hover:scale-[1.02]", style.border, style.bg)}
                   >
                     <div className="flex items-center gap-2">
                       <div className={cn("h-2 w-2 rounded-full", style.dot)} />
@@ -403,11 +410,7 @@ export function GraceBriefingDetails({ data }: { data: BriefingData }) {
                         {alert.summary.length > 120 ? `${alert.summary.slice(0, 120)}...` : alert.summary}
                       </p>
                     )}
-                    <Link href={href} className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-violet-600 hover:text-violet-700 dark:text-violet-400">
-                      View Details
-                      <ChevronRight className="h-3 w-3" />
-                    </Link>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

@@ -87,9 +87,10 @@ export function AlertFeed({ alerts }: AlertFeedProps) {
           {displayed.map((alert) => {
             const sev = severityColors[alert.severity] ?? severityColors.LOW;
             return (
-              <div
+              <Link
                 key={alert.id}
-                className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 transition-colors hover:bg-slate-50 dark:border-dark-500 dark:hover:bg-dark-600"
+                href="/alerts"
+                className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 transition-all hover:bg-slate-50 hover:scale-[1.01] dark:border-dark-500 dark:hover:bg-dark-600"
               >
                 <div className={`h-2 w-2 shrink-0 rounded-full ${sev.dot}`} />
                 <div className="min-w-0 flex-1">
@@ -105,8 +106,8 @@ export function AlertFeed({ alerts }: AlertFeedProps) {
                     </span>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 dark:text-dark-400" />
-              </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 dark:text-dark-400" />
+              </Link>
             );
           })}
         </div>

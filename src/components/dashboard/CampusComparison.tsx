@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Building2, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface CampusRow {
@@ -30,12 +31,17 @@ function TrendIcon({ trend }: { trend: CampusRow["trend"] }) {
   }
 }
 
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
 function formatCurrency(n: number): string {
   if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`;
   return `$${n.toLocaleString()}`;
 }
 
 export function CampusComparison() {
+  const router = useRouter();
   const campuses = mockCampuses;
 
   return (
@@ -79,6 +85,7 @@ export function CampusComparison() {
             {campuses.map((campus) => (
               <tr
                 key={campus.name}
+                onClick={() => router.push(`/?campus=${toSlug(campus.name)}`)}
                 className="border-b border-slate-50 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50 dark:border-dark-600 dark:hover:bg-dark-700"
               >
                 <td className="py-2.5 text-xs font-medium text-slate-800 dark:text-dark-100">
