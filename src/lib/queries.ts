@@ -129,7 +129,7 @@ export async function getDashboardData(churchId: string, campusId?: string) {
   ]);
 
   // Resolve user names and member names for the audit log
-  const userIds = [...new Set(recentAuditLog.map((l) => l.userId).filter(Boolean))] as string[];
+  const userIds = Array.from(new Set(recentAuditLog.map((l) => l.userId).filter(Boolean))) as string[];
   const resourceIds = recentAuditLog
     .map((l) => l.resource)
     .filter((r): r is string => !!r && r.startsWith("C")); // CUIDs start with C

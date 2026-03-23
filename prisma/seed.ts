@@ -570,7 +570,7 @@ async function main() {
     { member: m("Chris", "Patterson"), amount: 100, fund: "General", method: ContributionMethod.CASH, source: ContributionSource.CASH_CHECK },
     { member: m("Natalie", "Chen"), amount: 125, fund: "Youth Ministry", method: ContributionMethod.ONLINE, source: ContributionSource.VANCO },
     { member: m("Sophia", "Garcia"), amount: 200, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
-    { member: m("Jason", "Rivera"), amount: 150, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
+    { member: m("Brandon", "Scott"), amount: 150, fund: "General", method: ContributionMethod.ONLINE, source: ContributionSource.PUSHPAY },
   ];
   for (const g of thisWeekGivers) {
     contributionData.push({
