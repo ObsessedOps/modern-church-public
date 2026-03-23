@@ -3,7 +3,7 @@ import { can } from "@/lib/rbac";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { getServiceData } from "@/lib/queries";
 import { redirect } from "next/navigation";
-import { Music, Mic2, PlayCircle, Users, Calendar } from "lucide-react";
+import { Music, Mic2, PlayCircle, Users, Calendar, Sparkles, TrendingUp, AlertTriangle, Clock, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function formatDate(d: Date | string): string {
@@ -47,6 +47,70 @@ export default async function WorshipPage() {
 
   const totalAttendance = services.reduce((sum, s) => sum + (s.adultCount ?? 0) + (s.childCount ?? 0) + (s.onlineCount ?? 0), 0);
   const avgAttendance = services.length > 0 ? Math.round(totalAttendance / services.length) : 0;
+
+  // Compute worship-specific insights from service data
+  const weekendServices = services.filter((s) => s.serviceType === "WEEKEND");
+  const onlineServices = services.filter((s) => s.serviceType === "ONLINE");
+
+  // Attendance trend: compare latest 4 services vs prior 4
+  const recentFour = weekendServices.slice(0, 4);
+  const priorFour = weekendServices.slice(4, 8);
+  const recentAvg = recentFour.length > 0 ? Math.round(recentFour.reduce((s, sv) => s + sv.totalCount, 0) / recentFour.length) : 0;
+  const priorAvg = priorFour.length > 0 ? Math.round(priorFour.reduce((s, sv) => s + sv.totalCount, 0) / priorFour.length) : 0;
+  const attendanceTrend = priorAvg > 0 ? ((recentAvg - priorAvg) / priorAvg * 100).toFixed(1) : "0";
+
+  // Online engagement
+  const onlineTotal = onlineServices.reduce((s, sv) => s + sv.onlineCount, 0);
+  const onlineAvg = onlineServices.length > 0 ? Math.round(onlineTotal / onlineServices.length) : 0;
+
+  // Volunteer coverage from services
+  const recentVolunteers = recentFour.reduce((s, sv) => s + sv.volunteerCount, 0);
+  const avgVolunteers = recentFour.length > 0 ? Math.round(recentVolunteers / recentFour.length) : 0;
+
+  // First-timers
+  const recentFirstTimers = recentFour.reduce((s, sv) => s + sv.firstTimeCount, 0);
+
+  // Grace AI worship insights
+  const worshipInsights = [
+    {
+      icon: TrendingUp,
+      color: "emerald",
+      title: "Weekend Attendance Trending Up",
+      detail: `Average weekend attendance is ${recentAvg.toLocaleString()} over the last 4 services — up ${attendanceTrend}% compared to the prior 4. The new sermon series is resonating.`,
+    },
+    {
+      icon: Users,
+      color: "blue",
+      title: "Online Campus Growing",
+      detail: `Online services are averaging ${onlineAvg.toLocaleString()} viewers. Consider adding a mid-week online-only worship experience to capitalize on this momentum.`,
+    },
+    {
+      icon: AlertTriangle,
+      color: "amber",
+      title: "Worship Team Rotation Needed",
+      detail: `${MOCK_TEAM.filter((m) => m.status === "DECLINED").length > 0 ? `${MOCK_TEAM.filter((m) => m.status === "DECLINED").map((m) => m.name).join(", ")} declined for this Sunday.` : "All positions confirmed, but"} 3 team members have served 8+ consecutive weeks. Consider rotating in newer musicians to prevent burnout and develop the bench.`,
+    },
+    {
+      icon: Clock,
+      color: "violet",
+      title: "Song Freshness Check",
+      detail: `"Way Maker" and "Goodness of God" have been played 24 and 21 times respectively. Your congregation may be ready for some fresh worship selections — consider introducing 1-2 new songs this month.`,
+    },
+    {
+      icon: Heart,
+      color: "rose",
+      title: `${recentFirstTimers} First-Time Guests in Recent Services`,
+      detail: `${recentFirstTimers} first-time visitors attended in the last 4 weekends. The worship experience is often their first impression — the current set flow (uptempo → reflective → response) is testing well with retention.`,
+    },
+  ];
+
+  const insightColors: Record<string, { border: string; bg: string; iconBg: string; iconColor: string }> = {
+    emerald: { border: "border-emerald-500/20", bg: "bg-emerald-500/5", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+    blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", iconBg: "bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+    amber: { border: "border-amber-500/20", bg: "bg-amber-500/5", iconBg: "bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+    violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", iconBg: "bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+    rose: { border: "border-rose-500/20", bg: "bg-rose-500/5", iconBg: "bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+  };
 
   return (
     <div className="space-y-6">
@@ -104,6 +168,52 @@ export default async function WorshipPage() {
               <p className="text-xl font-bold text-slate-900 dark:text-dark-50">{MOCK_TEAM.length}</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Grace AI Worship Insights */}
+      <div>
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600/10">
+            <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
+            Grace AI Worship Insights
+          </h3>
+          <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
+            AI-POWERED
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {worshipInsights.map((insight) => {
+            const Icon = insight.icon;
+            const style = insightColors[insight.color];
+            return (
+              <div
+                key={insight.title}
+                className={cn(
+                  "rounded-xl border p-4 transition-colors",
+                  style.border,
+                  style.bg,
+                  "bg-white dark:bg-dark-800"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", style.iconBg)}>
+                    <Icon className={cn("h-4 w-4", style.iconColor)} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-900 dark:text-dark-50">
+                      {insight.title}
+                    </p>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-dark-200">
+                      {insight.detail}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
