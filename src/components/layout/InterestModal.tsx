@@ -16,15 +16,21 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
   const [role, setRole] = useState("");
   const [serve, setServe] = useState("");
   const [prayer, setPrayer] = useState("");
+  const [humanCheck, setHumanCheck] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [openedAt, setOpenedAt] = useState(0);
   const nameRef = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Focus name input on open
+  // Focus name input on open, record open timestamp
   useEffect(() => {
     if (open) {
       setTimeout(() => nameRef.current?.focus(), 100);
       setStatus("idle");
+      setHumanCheck(false);
+      setHoneypot("");
+      setOpenedAt(Date.now());
     }
   }, [open]);
 
@@ -40,14 +46,23 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim() || !email.trim() || !humanCheck) return;
 
     setStatus("sending");
     try {
       const res = await fetch("/api/interest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), church: church.trim(), role: role.trim(), serve: serve.trim(), prayer: prayer.trim() }),
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          church: church.trim(),
+          role: role.trim(),
+          serve: serve.trim(),
+          prayer: prayer.trim(),
+          _hp: honeypot,
+          _ts: openedAt,
+        }),
       });
       if (!res.ok) throw new Error();
       setStatus("sent");
@@ -199,6 +214,42 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
                 />
               </div>
 
+              {/* Honeypot — hidden from humans, bots auto-fill it */}
+              <div className="absolute -left-[9999px]" aria-hidden="true">
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
+
+              {/* Human verification checkbox */}
+              <label className="mt-1 flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-dark-500 dark:hover:bg-dark-700">
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={humanCheck}
+                    onChange={(e) => setHumanCheck(e.target.checked)}
+                    className="peer h-4.5 w-4.5 cursor-pointer appearance-none rounded border-2 border-slate-300 transition-colors checked:border-violet-500 checked:bg-violet-500 dark:border-dark-400"
+                  />
+                  <svg
+                    className="pointer-events-none absolute left-0.5 top-0.5 hidden h-3.5 w-3.5 text-white peer-checked:block"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-xs text-slate-600 dark:text-dark-200">
+                  I&apos;m a real person, not a bot
+                </span>
+              </label>
+
               {status === "error" && (
                 <p className="text-xs text-rose-500">
                   Something went wrong. Please try again.
@@ -207,7 +258,7 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
 
               <button
                 type="submit"
-                disabled={status === "sending" || !name.trim() || !email.trim()}
+                disabled={status === "sending" || !name.trim() || !email.trim() || !humanCheck}
                 className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700 disabled:opacity-50"
               >
                 {status === "sending" ? (
