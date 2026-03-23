@@ -14,6 +14,8 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
   const [email, setEmail] = useState("");
   const [church, setChurch] = useState("");
   const [role, setRole] = useState("");
+  const [serve, setServe] = useState("");
+  const [prayer, setPrayer] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const nameRef = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -45,7 +47,7 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
       const res = await fetch("/api/interest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), church: church.trim(), role: role.trim() }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), church: church.trim(), role: role.trim(), serve: serve.trim(), prayer: prayer.trim() }),
       });
       if (!res.ok) throw new Error();
       setStatus("sent");
@@ -168,6 +170,32 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
                   onChange={(e) => setRole(e.target.value)}
                   placeholder="Lead Pastor, Executive Director, etc."
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-dark-500 dark:bg-dark-700 dark:text-dark-50 dark:placeholder:text-dark-400 dark:focus:border-violet-500 dark:focus:bg-dark-600"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
+                  What&apos;s one way Modern.Church could serve you?
+                </label>
+                <textarea
+                  value={serve}
+                  onChange={(e) => setServe(e.target.value)}
+                  placeholder="Better visibility into engagement, automating follow-ups, etc."
+                  rows={2}
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-dark-500 dark:bg-dark-700 dark:text-dark-50 dark:placeholder:text-dark-400 dark:focus:border-violet-500 dark:focus:bg-dark-600"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
+                  How can we pray for you today?
+                </label>
+                <textarea
+                  value={prayer}
+                  onChange={(e) => setPrayer(e.target.value)}
+                  placeholder="Your church, your team, an upcoming season..."
+                  rows={2}
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-dark-500 dark:bg-dark-700 dark:text-dark-50 dark:placeholder:text-dark-400 dark:focus:border-violet-500 dark:focus:bg-dark-600"
                 />
               </div>
 

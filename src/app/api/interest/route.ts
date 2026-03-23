@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, church, role } = await req.json();
+    const { name, email, church, role, serve, prayer } = await req.json();
 
     if (!name || !email) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -43,6 +43,16 @@ export async function POST(req: NextRequest) {
                 <td style="padding: 8px 0; color: #1e293b; font-size: 14px;">${role}</td>
               </tr>` : ""}
             </table>
+            ${serve ? `
+            <div style="margin-top: 16px; padding: 12px 16px; background: #f1f5f9; border-radius: 8px;">
+              <p style="color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 6px 0;">How We Can Serve</p>
+              <p style="color: #1e293b; font-size: 14px; margin: 0; line-height: 1.5;">${serve}</p>
+            </div>` : ""}
+            ${prayer ? `
+            <div style="margin-top: 12px; padding: 12px 16px; background: #faf5ff; border-radius: 8px; border-left: 3px solid #a855f7;">
+              <p style="color: #7c3aed; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 6px 0;">Prayer Request</p>
+              <p style="color: #1e293b; font-size: 14px; margin: 0; line-height: 1.5; font-style: italic;">${prayer}</p>
+            </div>` : ""}
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
             <p style="color: #94a3b8; font-size: 12px; margin: 0;">
               Submitted from the Modern.Church demo at ${new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })}
