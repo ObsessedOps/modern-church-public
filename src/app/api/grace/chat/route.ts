@@ -60,6 +60,8 @@ async function buildChurchContext(): Promise<string> {
   if (!church) return "No church data available.";
 
   const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
   const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -71,6 +73,7 @@ async function buildChurchContext(): Promise<string> {
     memberCount,
     activeMemberCount,
     visitorCount,
+    visitors,
     recentServices,
     givingWeek,
     givingMTD,
@@ -81,6 +84,10 @@ async function buildChurchContext(): Promise<string> {
     volunteerTeams,
     growthTracks,
     engagementDist,
+    atRiskMembers,
+    disengagedMembers,
+    activeWorkflows,
+    recentExecutions,
   ] = await Promise.all([
     prisma.member.count({ where: { churchId: church.id } }),
     prisma.member.count({
@@ -88,6 +95,13 @@ async function buildChurchContext(): Promise<string> {
     }),
     prisma.member.count({
       where: { churchId: church.id, membershipStatus: "VISITOR", createdAt: { gte: startOfWeek } },
+    }),
+    // Visitor details
+    prisma.member.findMany({
+      where: { churchId: church.id, membershipStatus: "VISITOR", createdAt: { gte: startOfWeek } },
+      select: { firstName: true, lastName: true, email: true, primaryCampus: { select: { name: true } }, createdAt: true },
+      orderBy: { createdAt: "desc" },
+      take: 10,
     }),
     prisma.serviceSummary.findMany({
       where: { churchId: church.id, serviceDate: { gte: fourWeeksAgo } },
@@ -143,9 +157,62 @@ async function buildChurchContext(): Promise<string> {
       where: { churchId: church.id },
       _count: true,
     }),
+    // At-risk members with details
+    prisma.member.findMany({
+      where: { churchId: church.id, engagementTier: "AT_RISK" },
+      select: { firstName: true, lastName: true, engagementScore: true, lastActivityAt: true, primaryCampus: { select: { name: true } } },
+      orderBy: { engagementScore: "asc" },
+      take: 10,
+    }),
+    // Disengaged members
+    prisma.member.findMany({
+      where: { churchId: church.id, engagementTier: "DISENGAGED" },
+      select: { firstName: true, lastName: true, engagementScore: true, lastActivityAt: true, primaryCampus: { select: { name: true } } },
+      orderBy: { engagementScore: "asc" },
+      take: 10,
+    }),
+    // Active care workflows/pathways
+    prisma.workflow.findMany({
+      where: { churchId: church.id, status: "ACTIVE" },
+      select: { name: true, description: true, trigger: true, steps: { select: { type: true, sortOrder: true }, orderBy: { sortOrder: "asc" } } },
+    }),
+    // Recent pathway executions
+    prisma.workflowExecution.findMany({
+      where: { churchId: church.id, startedAt: { gte: fourWeeksAgo } },
+      select: {
+        status: true,
+        startedAt: true,
+        workflow: { select: { name: true } },
+        member: { select: { firstName: true, lastName: true } },
+      },
+      orderBy: { startedAt: "desc" },
+      take: 15,
+    }),
   ]);
 
-  const attendanceLines = recentServices.slice(0, 8).map((s) => {
+  // ── Compute attendance trend ──────────────────────────
+  const thisWeekServices = recentServices.filter((s) => new Date(s.serviceDate) >= oneWeekAgo);
+  const lastWeekServices = recentServices.filter((s) => {
+    const d = new Date(s.serviceDate);
+    return d >= twoWeeksAgo && d < oneWeekAgo;
+  });
+  const thisWeekTotal = thisWeekServices.reduce((sum, s) => sum + s.totalCount, 0);
+  const lastWeekTotal = lastWeekServices.reduce((sum, s) => sum + s.totalCount, 0);
+  const attendanceDelta = lastWeekTotal > 0
+    ? ((thisWeekTotal - lastWeekTotal) / lastWeekTotal * 100).toFixed(1)
+    : "N/A";
+
+  // Per-campus this week breakdown
+  const campusBreakdown = church.campuses.map((c) => {
+    const campusServices = thisWeekServices.filter((s) => s.campus?.name === c.name);
+    const total = campusServices.reduce((sum, s) => sum + s.totalCount, 0);
+    const adults = campusServices.reduce((sum, s) => sum + s.adultCount, 0);
+    const kids = campusServices.reduce((sum, s) => sum + s.childCount, 0);
+    const online = campusServices.reduce((sum, s) => sum + s.onlineCount, 0);
+    return `  ${c.name}: ${total} total (${adults} adults, ${kids} kids${online > 0 ? `, ${online} online` : ""})`;
+  }).filter((line) => !line.includes(": 0 total"));
+
+  const attendanceLines = recentServices.slice(0, 12).map((s) => {
     const date = new Date(s.serviceDate).toLocaleDateString();
     return `  ${date} (${s.campus?.name ?? "Unknown"}): ${s.totalCount} total (${s.adultCount} adults, ${s.childCount} children, ${s.onlineCount} online)`;
   });
@@ -177,6 +244,36 @@ async function buildChurchContext(): Promise<string> {
 
   const campusNames = church.campuses.map((c) => `${c.name}${c.isMainCampus ? " (main)" : ""}`).join(", ");
 
+  // Visitor detail lines
+  const visitorLines = visitors.map((v) => {
+    const daysAgo = Math.floor((now.getTime() - new Date(v.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+    const when = daysAgo === 0 ? "today" : daysAgo === 1 ? "yesterday" : `${daysAgo} days ago`;
+    return `  ${v.firstName} ${v.lastName} — ${v.primaryCampus?.name ?? "Unknown campus"}, visited ${when}${v.email ? ` (${v.email})` : ""}`;
+  });
+
+  // At-risk member lines
+  const atRiskLines = atRiskMembers.map((m) => {
+    const daysSince = m.lastActivityAt ? Math.floor((now.getTime() - new Date(m.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24)) : null;
+    return `  ${m.firstName} ${m.lastName} — score: ${m.engagementScore}, ${m.primaryCampus?.name ?? "Unknown"}${daysSince != null ? `, last active ${daysSince}d ago` : ""}`;
+  });
+
+  const disengagedLines = disengagedMembers.map((m) => {
+    const daysSince = m.lastActivityAt ? Math.floor((now.getTime() - new Date(m.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24)) : null;
+    return `  ${m.firstName} ${m.lastName} — score: ${m.engagementScore}, ${m.primaryCampus?.name ?? "Unknown"}${daysSince != null ? `, last active ${daysSince}d ago` : ""}`;
+  });
+
+  // Pathway/workflow lines
+  const workflowLines = activeWorkflows.map((w) => {
+    const stepTypes = w.steps.map((s) => s.type).join(" → ");
+    return `  ${w.name} (trigger: ${w.trigger}): ${w.steps.length} steps [${stepTypes}]${w.description ? ` — ${w.description}` : ""}`;
+  });
+
+  const executionLines = recentExecutions.slice(0, 10).map((e) => {
+    const daysAgo = Math.floor((now.getTime() - new Date(e.startedAt).getTime()) / (1000 * 60 * 60 * 24));
+    const when = daysAgo === 0 ? "today" : daysAgo === 1 ? "yesterday" : `${daysAgo}d ago`;
+    return `  ${e.workflow.name} → ${e.member.firstName} ${e.member.lastName} [${e.status}] (${when})`;
+  });
+
   return `
 CHURCH PROFILE:
   Name: ${church.name}
@@ -192,13 +289,27 @@ MEMBERSHIP:
 ENGAGEMENT DISTRIBUTION:
 ${engagementLines.join("\n")}
 
-RECENT ATTENDANCE (last 4 weeks):
+ATTENDANCE TREND:
+  This week total: ${thisWeekTotal} | Last week: ${lastWeekTotal} | Change: ${attendanceDelta}%
+  Per-campus this week:
+${campusBreakdown.length > 0 ? campusBreakdown.join("\n") : "  No services recorded this week"}
+
+RECENT ATTENDANCE DETAIL (last 4 weeks):
 ${attendanceLines.join("\n")}
 
 GIVING:
   This week: $${(givingWeek._sum.amount ?? 0).toLocaleString()}
   Month-to-date: $${(givingMTD._sum.amount ?? 0).toLocaleString()}
   Year-to-date: $${(givingYTD._sum.amount ?? 0).toLocaleString()}
+
+NEW VISITORS THIS WEEK (${visitorCount}):
+${visitorLines.length > 0 ? visitorLines.join("\n") : "  No new visitors this week"}
+
+AT-RISK MEMBERS (${atRiskMembers.length}):
+${atRiskLines.length > 0 ? atRiskLines.join("\n") : "  None currently at risk"}
+
+DISENGAGED MEMBERS (${disengagedMembers.length}):
+${disengagedLines.length > 0 ? disengagedLines.join("\n") : "  None currently disengaged"}
 
 ACTIVE ALERTS (${activeAlerts.length}):
 ${alertLines.length > 0 ? alertLines.join("\n") : "  No active alerts"}
@@ -215,6 +326,12 @@ ${volunteerLines.join("\n")}
 GROWTH TRACK (Discipleship Pipeline):
   Active: ${activeGT.length}, Stalled: ${stalledGT.length}, Completed: ${completedGT.length}
 ${stalledGT.length > 0 ? `  Stalled members needing attention: ${stalledGT.map((t) => `${t.member.firstName} ${t.member.lastName} (at ${t.currentStep})`).join(", ")}` : ""}
+
+CARE PATHWAYS (${activeWorkflows.length} active):
+${workflowLines.length > 0 ? workflowLines.join("\n") : "  No active pathways"}
+
+RECENT PATHWAY ACTIVITY (last 4 weeks):
+${executionLines.length > 0 ? executionLines.join("\n") : "  No recent executions"}
 `.trim();
 }
 
@@ -253,6 +370,15 @@ export async function POST(request: NextRequest) {
 CURRENT CHURCH DATA:
 ${churchContext}
 
+YOUR CAPABILITIES — WHAT YOU POWER ON THE DASHBOARD:
+You are the intelligence behind several dashboard features. When relevant, reference these naturally so pastors know what's available:
+- **Grace AI Daily Briefing** — You generate the daily summary at the top of the dashboard with highlight cards for attendance trends, visitor pipeline, volunteer coverage, active alerts, and pathway status.
+- **Trend Insights** — You surface AI-powered trend analysis cards (attendance streaks, visitor retention rates, group engagement momentum, growth projections) that appear below the briefing.
+- **Proactive Nudges** — You generate contextual nudge cards that recommend specific pastoral actions (e.g., "3 families missed 2+ weeks — consider a check-in before they hit 3").
+- **Care Pathways** — Automated multi-step workflows you help trigger and monitor. When someone misses 3 weeks, a pathway can automatically send a care email, schedule a follow-up, and escalate to a pastor. You know which pathways are active and who they've triggered for.
+- **Engagement Scoring** — You compute engagement scores (0-100) for every member based on attendance, giving consistency, group participation, volunteering, and recency. You assign tiers: Champion, Engaged, Casual, At-Risk, Disengaged.
+- **Alerts & Thresholds** — You detect and surface alerts like attendance drops, volunteer burnout, missed visitor follow-ups, and threshold breaches.
+
 CONVERSATION STYLE:
 - Talk like a trusted advisor sitting across the table from the pastor — warm, direct, conversational.
 - Lead with the insight, not the data dump. Weave numbers naturally into sentences instead of listing raw stats.
@@ -260,6 +386,7 @@ CONVERSATION STYLE:
 - Keep paragraphs short (2-3 sentences max). Use line breaks between thoughts for readability.
 - When something needs attention, say it plainly: "I'd want to check on the Johnson family this week" not "Action item: Contact Johnson family."
 - If you mention a concern, pair it with a specific, practical next step.
+- When referencing people who need attention, use their actual names from the data — pastors connect with names, not numbers.
 - Do NOT use markdown headings (## or #). Do NOT use horizontal rules (---). Just write naturally with paragraphs and occasional bullet points.
 - Numbered lists are fine for action steps, but keep them tight (1-3 items, one line each).
 - If asked about something not in the data, say so honestly.
