@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { name, email, church, role, serve, prayer, _hp, _ts } = await req.json();
+    const { name, email, church, role, serve, prayer, consulting, heardFrom, _hp, _ts } = await req.json();
 
     // Honeypot check — bots fill hidden fields
     if (_hp) {
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Basic input length limits
-    if (name.length > 200 || email.length > 200 || (church && church.length > 300) || (role && role.length > 300) || (serve && serve.length > 2000) || (prayer && prayer.length > 2000)) {
+    if (name.length > 200 || email.length > 200 || (church && church.length > 300) || (role && role.length > 300) || (serve && serve.length > 2000) || (prayer && prayer.length > 2000) || (heardFrom && heardFrom.length > 500)) {
       return NextResponse.json({ error: "Input too long" }, { status: 400 });
     }
 
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
       role: role ? esc(role) : "",
       serve: serve ? esc(serve) : "",
       prayer: prayer ? esc(prayer) : "",
+      heardFrom: heardFrom ? esc(heardFrom) : "",
     };
 
     await resend.emails.send({
@@ -104,7 +105,16 @@ export async function POST(req: NextRequest) {
                 <td style="padding: 8px 0; color: #64748b; font-size: 13px;">Role</td>
                 <td style="padding: 8px 0; color: #1e293b; font-size: 14px;">${s.role}</td>
               </tr>` : ""}
+              ${s.heardFrom ? `
+              <tr>
+                <td style="padding: 8px 0; color: #64748b; font-size: 13px;">Heard From</td>
+                <td style="padding: 8px 0; color: #1e293b; font-size: 14px;">${s.heardFrom}</td>
+              </tr>` : ""}
             </table>
+            ${consulting ? `
+            <div style="margin-top: 16px; padding: 10px 16px; background: #f5f3ff; border-radius: 8px; border: 1px solid #ddd6fe;">
+              <p style="color: #7c3aed; font-size: 13px; font-weight: 600; margin: 0;">Interested in Consulting Services</p>
+            </div>` : ""}
             ${s.serve ? `
             <div style="margin-top: 16px; padding: 12px 16px; background: #f1f5f9; border-radius: 8px;">
               <p style="color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 6px 0;">How We Can Serve</p>

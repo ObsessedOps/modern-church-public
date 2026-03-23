@@ -16,6 +16,8 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
   const [role, setRole] = useState("");
   const [serve, setServe] = useState("");
   const [prayer, setPrayer] = useState("");
+  const [consulting, setConsulting] = useState(false);
+  const [heardFrom, setHeardFrom] = useState("");
   const [humanCheck, setHumanCheck] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -60,6 +62,8 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
           role: role.trim(),
           serve: serve.trim(),
           prayer: prayer.trim(),
+          consulting,
+          heardFrom: heardFrom.trim(),
           _hp: honeypot,
           _ts: openedAt,
         }),
@@ -190,6 +194,19 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
 
               <div>
                 <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
+                  How did you hear about Modern.Church?
+                </label>
+                <input
+                  type="text"
+                  value={heardFrom}
+                  onChange={(e) => setHeardFrom(e.target.value)}
+                  placeholder="A friend, social media, conference, podcast..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-dark-500 dark:bg-dark-700 dark:text-dark-50 dark:placeholder:text-dark-400 dark:focus:border-violet-500 dark:focus:bg-dark-600"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
                   What&apos;s one way Modern.Church could serve you?
                 </label>
                 <textarea
@@ -213,6 +230,35 @@ export function InterestModal({ open, onClose }: InterestModalProps) {
                   className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-dark-500 dark:bg-dark-700 dark:text-dark-50 dark:placeholder:text-dark-400 dark:focus:border-violet-500 dark:focus:bg-dark-600"
                 />
               </div>
+
+              {/* Consulting interest */}
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-violet-200 bg-violet-50/50 px-4 py-3 transition-colors hover:bg-violet-50 dark:border-violet-500/20 dark:bg-violet-500/5 dark:hover:bg-violet-500/10">
+                <div className="relative mt-0.5 flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={consulting}
+                    onChange={(e) => setConsulting(e.target.checked)}
+                    className="peer h-4.5 w-4.5 cursor-pointer appearance-none rounded border-2 border-violet-300 transition-colors checked:border-violet-500 checked:bg-violet-500 dark:border-violet-500/40"
+                  />
+                  <svg
+                    className="pointer-events-none absolute left-0.5 top-0.5 hidden h-3.5 w-3.5 text-white peer-checked:block"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="text-xs font-medium text-violet-700 dark:text-violet-300">
+                    We&apos;d also love help with strategy &amp; consulting
+                  </span>
+                  <p className="mt-0.5 text-[10px] leading-relaxed text-violet-500/80 dark:text-violet-400/60">
+                    Our team offers hands-on consulting to help churches with technology, operations, and growth strategy.
+                  </p>
+                </div>
+              </label>
 
               {/* Honeypot — hidden from humans, bots auto-fill it */}
               <div className="absolute -left-[9999px]" aria-hidden="true">
