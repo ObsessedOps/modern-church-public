@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -15,9 +16,12 @@ import {
   Calendar,
   CheckCircle2,
   Workflow,
+  Settings2,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGracePanelStore } from "@/stores/grace-panel";
+import { useGraceBriefingCardsStore, ALL_BRIEFING_CARDS, type BriefingCardId } from "@/stores/grace-briefing-cards";
 
 interface BriefingAlert {
   id: string;
@@ -128,12 +132,36 @@ const ROLE_HIGHLIGHTS: Record<string, string[]> = {
   READ_ONLY: ["attendance", "visitors"],
 };
 
+// Map internal highlight IDs to store card labels
+const HIGHLIGHT_TO_CARD: Record<string, BriefingCardId> = {
+  attendance: "Attendance",
+  visitors: "Visitor Pipeline",
+  volunteers: "Volunteer Coverage",
+  alerts: "Active Alerts",
+  pathways: "Pathways",
+};
+
 export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: BriefingData; role?: string }) {
   const openGrace = useGracePanelStore((s) => s.open);
+  const { visible, toggle } = useGraceBriefingCardsStore();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handler(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuOpen]);
 
   const summary = buildSummary(data, role);
   const briefingMeta = ROLE_BRIEFING[role] ?? ROLE_BRIEFING.SENIOR_PASTOR;
-  const visibleIds = ROLE_HIGHLIGHTS[role] ?? ROLE_HIGHLIGHTS.SENIOR_PASTOR;
+  const roleVisibleIds = ROLE_HIGHLIGHTS[role] ?? ROLE_HIGHLIGHTS.SENIOR_PASTOR;
 
   const allHighlights = [
     {
@@ -178,7 +206,12 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
     },
   ];
 
-  const highlights = allHighlights.filter((h) => visibleIds.includes(h.id));
+  // Filter by role permissions AND user customization
+  const roleAvailable = allHighlights.filter((h) => roleVisibleIds.includes(h.id));
+  const highlights = roleAvailable.filter((h) => {
+    const cardId = HIGHLIGHT_TO_CARD[h.id];
+    return cardId && visible.includes(cardId);
+  });
 
   return (
     <div className="card relative overflow-hidden border border-violet-500/20">
@@ -205,56 +238,120 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
         </button>
       </div>
 
+      {/* Highlight Cards Header with Customize */}
+      <div className="mt-5 mb-3 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-dark-400">
+          Highlights
+        </span>
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 dark:text-dark-300 dark:hover:bg-dark-700"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+            <span>Customize</span>
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 top-full z-50 mt-1.5 w-56 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg dark:border-dark-600 dark:bg-dark-800">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-dark-400">
+                Show / Hide Cards
+              </p>
+              {ALL_BRIEFING_CARDS.map((cardId) => {
+                const available = roleAvailable.some(
+                  (h) => HIGHLIGHT_TO_CARD[h.id] === cardId
+                );
+                const checked = visible.includes(cardId);
+                return (
+                  <button
+                    key={cardId}
+                    onClick={() => available && toggle(cardId)}
+                    disabled={!available}
+                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
+                      available
+                        ? "text-slate-700 hover:bg-slate-50 dark:text-dark-200 dark:hover:bg-dark-700"
+                        : "cursor-not-allowed text-slate-300 dark:text-dark-500"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                        checked && available
+                          ? "border-violet-500 bg-violet-500 text-white"
+                          : "border-slate-300 dark:border-dark-500"
+                      }`}
+                    >
+                      {checked && available && <Check className="h-3 w-3" />}
+                    </span>
+                    <span>{cardId}</span>
+                    {!available && (
+                      <span className="ml-auto text-[10px] text-slate-400 dark:text-dark-400">
+                        No access
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Highlight Cards */}
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {highlights.map((h) => {
-          const Icon = h.icon;
-          return (
-            <div
-              key={h.label}
-              className={cn(
-                "rounded-xl border p-3 transition-colors",
-                h.color === "emerald" && "border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10",
-                h.color === "blue" && "border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10",
-                h.color === "amber" && "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10",
-                h.color === "rose" && "border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10",
-                h.color === "violet" && "border-violet-500/20 bg-violet-500/5 hover:bg-violet-500/10"
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <Icon
-                  className={cn(
-                    "h-4 w-4",
-                    h.color === "emerald" && "text-emerald-500",
-                    h.color === "blue" && "text-blue-500",
-                    h.color === "amber" && "text-amber-500",
-                    h.color === "rose" && "text-rose-500",
-                    h.color === "violet" && "text-violet-500"
-                  )}
-                />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
-                  {h.label}
-                </span>
-              </div>
-              <p
+      {highlights.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {highlights.map((h) => {
+            const Icon = h.icon;
+            return (
+              <div
+                key={h.label}
                 className={cn(
-                  "mt-1.5 text-xl font-bold",
-                  h.color === "emerald" && "text-emerald-600 dark:text-emerald-400",
-                  h.color === "blue" && "text-blue-600 dark:text-blue-400",
-                  h.color === "amber" && "text-amber-600 dark:text-amber-400",
-                  h.color === "rose" && "text-rose-600 dark:text-rose-400",
-                  h.color === "violet" && "text-violet-600 dark:text-violet-400"
+                  "rounded-xl border p-3 transition-colors",
+                  h.color === "emerald" && "border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10",
+                  h.color === "blue" && "border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10",
+                  h.color === "amber" && "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10",
+                  h.color === "rose" && "border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10",
+                  h.color === "violet" && "border-violet-500/20 bg-violet-500/5 hover:bg-violet-500/10"
                 )}
               >
-                {h.value}
-              </p>
-              <p className="mt-1 text-xs text-slate-600 dark:text-dark-200">
-                {h.detail}
-              </p>
-            </div>
-          );
-        })}
-      </div>
+                <div className="flex items-center gap-2">
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      h.color === "emerald" && "text-emerald-500",
+                      h.color === "blue" && "text-blue-500",
+                      h.color === "amber" && "text-amber-500",
+                      h.color === "rose" && "text-rose-500",
+                      h.color === "violet" && "text-violet-500"
+                    )}
+                  />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-dark-300">
+                    {h.label}
+                  </span>
+                </div>
+                <p
+                  className={cn(
+                    "mt-1.5 text-xl font-bold",
+                    h.color === "emerald" && "text-emerald-600 dark:text-emerald-400",
+                    h.color === "blue" && "text-blue-600 dark:text-blue-400",
+                    h.color === "amber" && "text-amber-600 dark:text-amber-400",
+                    h.color === "rose" && "text-rose-600 dark:text-rose-400",
+                    h.color === "violet" && "text-violet-600 dark:text-violet-400"
+                  )}
+                >
+                  {h.value}
+                </p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-dark-200">
+                  {h.detail}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-slate-300 px-6 py-8 text-center text-sm text-slate-400 dark:border-dark-600 dark:text-dark-400">
+          No cards selected. Click <strong>Customize</strong> to add highlights.
+        </div>
+      )}
     </div>
   );
 }

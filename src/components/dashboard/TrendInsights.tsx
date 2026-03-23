@@ -48,14 +48,14 @@ const ROLE_INSIGHTS: Record<string, TrendInsight[]> = {
       href: "/visitors",
     },
     {
-      id: "giving-pattern",
-      icon: Heart,
+      id: "group-engagement",
+      icon: Users,
       color: "rose",
-      category: "Giving Intelligence",
+      category: "Group Engagement",
       narrative:
-        "3 recurring donors are showing early lapse signals based on pattern changes — missed their usual cadence by 10+ days. Proactive outreach recommended.",
-      metric: "3 at-risk donors",
-      href: "/giving",
+        "Small group participation is up 18% since launching the semester push. 5 groups are averaging 90%+ attendance — consider highlighting them as models for new leaders.",
+      metric: "+18% participation",
+      href: "/groups",
     },
     {
       id: "growth-projection",

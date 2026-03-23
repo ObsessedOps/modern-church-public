@@ -72,14 +72,34 @@ export function PathwayAlerts() {
   }, []);
 
   useEffect(() => {
+    // Skip if alerts were already shown within the last 15 minutes
+    const COOLDOWN_KEY = "pathway-alerts-shown";
+    const COOLDOWN_MS = 15 * 60 * 1000;
+    const lastShown = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith(`${COOLDOWN_KEY}=`));
+
+    if (lastShown) {
+      const timestamp = Number(lastShown.split("=")[1]);
+      if (Date.now() - timestamp < COOLDOWN_MS) return;
+    }
+
     const timers: ReturnType<typeof setTimeout>[] = [];
 
+    // Set cooldown cookie once the first alert fires
+    const setCooldown = () => {
+      const expires = new Date(Date.now() + COOLDOWN_MS).toUTCString();
+      document.cookie = `${COOLDOWN_KEY}=${Date.now()};path=/;expires=${expires};SameSite=Lax`;
+    };
+
     SIMULATED_ALERTS.forEach((alert, i) => {
-      // Stagger: first at 3s, then every 8s
-      const delay = 3000 + i * 8000;
+      // Stagger: first at 8s, then every 10s
+      const delay = 8000 + i * 10000;
 
       timers.push(
         setTimeout(() => {
+          if (i === 0) setCooldown();
+
           const id = `pathway-${Date.now()}-${i}`;
           setAlerts((prev) => [...prev, { ...alert, id, visible: false, dismissing: false }]);
 
