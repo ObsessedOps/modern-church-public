@@ -619,8 +619,8 @@ export default async function MemberDetailPage({
           )}
         </div>
 
-        {/* Giving Summary — hidden for now, wrap in {false && (...)} to re-enable */}
-        {false && can(session, "giving:view") && (
+        {/* Giving Summary — hidden for now, uncomment to re-enable
+        {can(session, "giving:view") && (
           <div className="card p-5">
             <div className="mb-3 flex items-center gap-2">
               <Heart className="h-4 w-4 text-emerald-500" />
@@ -651,6 +651,7 @@ export default async function MemberDetailPage({
             )}
           </div>
         )}
+        */}
       </div>
 
       {/* ── Groups + Volunteer ───────────────────────────────── */}
