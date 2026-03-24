@@ -20,6 +20,7 @@ const SearchOverlay = dynamic(() => import("./SearchOverlay").then((m) => ({ def
 const KeyboardShortcuts = dynamic(() => import("./KeyboardShortcuts"), { ssr: false });
 const NavigationShortcuts = dynamic(() => import("./NavigationShortcuts"), { ssr: false });
 const GlobalCompose = dynamic(() => import("@/components/messaging/GlobalCompose").then((m) => ({ default: m.GlobalCompose })), { ssr: false });
+const ProductTour = dynamic(() => import("./ProductTour").then((m) => ({ default: m.ProductTour })), { ssr: false });
 
 function GraceFab() {
   const { isOpen, toggle } = useGracePanelStore();
@@ -92,6 +93,7 @@ export function AppShell({ children, campuses = [], demoRoles, activeDemoRole = 
       <GlobalCompose />
       <RouteProgress />
       <ScrollToTop />
+      <ProductTour />
     </div>
     </>
   );
