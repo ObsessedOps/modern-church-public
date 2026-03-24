@@ -8,6 +8,7 @@ const labelMap: Record<string, string> = {
   "": "Command Center",
   grace: "Grace",
   alerts: "Alerts",
+  insights: "Insights",
   members: "Members",
   groups: "Groups",
   visitors: "Visitors",
@@ -22,7 +23,25 @@ const labelMap: Record<string, string> = {
   staff: "Staff",
   compliance: "Compliance",
   settings: "Settings",
+  pathways: "Pathways",
+  "growth-track": "Growth Track",
+  integrations: "Integrations",
+  thresholds: "Thresholds",
 };
+
+// Context-aware labels for dynamic [id] segments based on parent route
+const detailLabelMap: Record<string, string> = {
+  members: "Profile",
+  alerts: "Alert Details",
+  insights: "Insight",
+  groups: "Group Details",
+  workflows: "Workflow",
+};
+
+// Detect CUID-like strings (start with c/C, 20+ alphanumeric chars)
+function isCuid(seg: string): boolean {
+  return /^c[a-z0-9]{19,}$/i.test(seg);
+}
 
 export default function Breadcrumbs() {
   const pathname = usePathname();
@@ -30,11 +49,19 @@ export default function Breadcrumbs() {
 
   if (segments.length === 0) return null;
 
-  const crumbs = segments.map((seg, i) => ({
-    label: labelMap[seg] ?? decodeURIComponent(seg),
-    href: "/" + segments.slice(0, i + 1).join("/"),
-    isLast: i === segments.length - 1,
-  }));
+  const crumbs = segments.map((seg, i) => {
+    let label = labelMap[seg];
+    if (!label && isCuid(seg)) {
+      // Use parent route context for a friendly label
+      const parent = segments[i - 1];
+      label = detailLabelMap[parent] ?? "Details";
+    }
+    return {
+      label: label ?? decodeURIComponent(seg).replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      href: "/" + segments.slice(0, i + 1).join("/"),
+      isLast: i === segments.length - 1,
+    };
+  });
 
   return (
     <nav className="flex items-center gap-1 text-xs text-slate-400 dark:text-dark-300">
