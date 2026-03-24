@@ -74,7 +74,7 @@ const TOUR_STEPS: TourStep[] = [
     title: "Care That Runs Itself",
     hook: "A family misses three Sundays and nobody notices until it's too late.",
     description:
-      "With Modern.Church, a care pathway triggers automatically. A check-in goes out, a follow-up gets scheduled, and if there's no response, it escalates. Your heart for people, systematized so nothing gets missed.",
+      "With Modern.Church, you'll know before week four. It surfaces who's drifting and gives you the context to reach out personally. The right person, the right moment, the right conversation.",
     navHighlight: "Pathways",
     previewLabel: "Happening automatically",
     preview: <PreviewPathways />,
