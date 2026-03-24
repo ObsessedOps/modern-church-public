@@ -117,16 +117,15 @@ export function ProductTour() {
 
   useEffect(() => {
     if (TESTING_MODE) {
-      const timer = setTimeout(() => setActive(true), 1500);
-      return () => clearTimeout(timer);
+      setActive(true);
+      return;
     }
 
     const completed = document.cookie
       .split("; ")
       .some((c) => c.startsWith(`${COOKIE_KEY}=`));
     if (!completed) {
-      const timer = setTimeout(() => setActive(true), 1500);
-      return () => clearTimeout(timer);
+      setActive(true);
     }
   }, []);
 

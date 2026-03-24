@@ -92,9 +92,15 @@ export function PathwayAlerts() {
       document.cookie = `${COOLDOWN_KEY}=${Date.now()};path=/;expires=${expires};SameSite=Lax`;
     };
 
+    // Auto-dismiss duration per card (seconds visible)
+    const CARD_VISIBLE_MS = 7000;
+    // Gap between one card exiting and the next appearing
+    const GAP_BETWEEN_MS = 30000;
+
     SIMULATED_ALERTS.forEach((alert, i) => {
-      // Stagger: first at 8s, then every 10s
-      const delay = 8000 + i * 10000;
+      // First card at 180s, then each subsequent card appears 30s after the previous exits
+      // Exit = appear + visible duration + dismiss animation (300ms)
+      const delay = 180000 + i * (CARD_VISIBLE_MS + 300 + GAP_BETWEEN_MS);
 
       timers.push(
         setTimeout(() => {
