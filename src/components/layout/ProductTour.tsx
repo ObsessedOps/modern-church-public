@@ -95,8 +95,7 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
-// Disable cookie for testing
-const TESTING_MODE = true;
+const TESTING_MODE = false;
 const COOKIE_KEY = "mc-tour-completed";
 
 export function ProductTour() {
@@ -120,7 +119,7 @@ export function ProductTour() {
   const dismiss = useCallback(() => {
     setActive(false);
     if (!TESTING_MODE) {
-      const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
+      const expires = new Date(Date.now() + 60 * 60 * 1000).toUTCString();
       document.cookie = `${COOKIE_KEY}=1;path=/;expires=${expires};SameSite=Lax`;
     }
   }, []);
