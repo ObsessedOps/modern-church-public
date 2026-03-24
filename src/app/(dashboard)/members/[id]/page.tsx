@@ -382,7 +382,7 @@ export default async function MemberDetailPage({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
-                  Grace AI Insight
+                  Engagement Insight
                 </h3>
                 <span className="rounded-full bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-bold text-violet-600 dark:text-violet-400">
                   AI

@@ -207,7 +207,7 @@ export function GraceNudges({ role = "SENIOR_PASTOR" }: { role?: string }) {
           <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
         </div>
         <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
-          Grace AI Proactive Insights
+          Recommended Actions
         </h3>
         <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
           AI-GENERATED

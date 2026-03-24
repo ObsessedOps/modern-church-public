@@ -166,10 +166,10 @@ export default async function GivingPage() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
-              Grace AI — Giving Health
+              Giving Health
             </h3>
             <p className="text-[10px] text-slate-500 dark:text-dark-300">
-              AI-powered giving pattern analysis
+              Giving pattern analysis
             </p>
           </div>
         </div>

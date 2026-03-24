@@ -90,7 +90,7 @@ export function InsightsFeed() {
                 </div>
                 <div className="mt-0.5 flex items-center gap-2 text-[10px] text-slate-400 dark:text-dark-400">
                   {insight.source === "AI_GENERATED" ? (
-                    <span className="flex items-center gap-0.5"><Sparkles className="h-2.5 w-2.5" /> Grace AI</span>
+                    <span className="flex items-center gap-0.5"><Sparkles className="h-2.5 w-2.5" /> Auto-generated</span>
                   ) : (
                     <span className="flex items-center gap-0.5"><MessageCircle className="h-2.5 w-2.5" /> {insight.author?.name}</span>
                   )}

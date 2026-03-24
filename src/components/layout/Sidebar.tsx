@@ -169,7 +169,7 @@ export function Sidebar() {
               toggleGrace();
               closeMobile();
             }}
-            title={collapsed ? "Grace AI (⌘K)" : undefined}
+            title={collapsed ? "Grace (⌘K)" : undefined}
             className={cn(
               "flex w-full items-center rounded-lg border border-violet-500/20 bg-violet-500/5 text-sm font-medium text-violet-600 transition-all hover:bg-violet-500/10 hover:shadow-sm dark:text-violet-400",
               collapsed
@@ -180,7 +180,7 @@ export function Sidebar() {
             <Sparkles className="h-4 w-4 shrink-0" />
             {!collapsed && (
               <>
-                <span>Grace AI</span>
+                <span>Grace</span>
                 <span className="ml-auto rounded bg-violet-500/10 px-1.5 py-0.5 text-[10px] text-violet-500/70">
                   ⌘K
                 </span>

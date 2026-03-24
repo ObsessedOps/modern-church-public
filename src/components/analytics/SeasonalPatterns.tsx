@@ -105,7 +105,7 @@ export function SeasonalPatterns() {
         <div className="flex items-center gap-1.5">
           <Sparkles className="h-3 w-3 text-violet-500" />
           <span className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-            Grace AI Seasonal Insights
+            Seasonal Insights
           </span>
         </div>
         {insights.map((insight, i) => {

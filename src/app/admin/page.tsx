@@ -295,7 +295,7 @@ export default function AdminDashboard() {
         {/* ── AI Usage KPIs ────────────────────────────── */}
         <div>
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Grace AI Usage
+            Intelligence Usage
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <KpiCard icon={Sparkles} label="Requests 7d" value={stats.ai.requests7d} color="bg-violet-500" />

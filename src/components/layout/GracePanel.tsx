@@ -96,7 +96,7 @@ function PanelContent({
       id: "welcome",
       role: "assistant",
       content:
-        "Hello, Pastor! I'm **Grace AI**. Ask me anything about your church — attendance, giving, engagement, alerts, volunteers, or groups.",
+        "Hello, Pastor! I'm **Grace**. Ask me anything about your church — attendance, giving, engagement, alerts, volunteers, or groups.",
       timestamp: formatTime(),
     },
   ]);
@@ -205,7 +205,7 @@ function PanelContent({
         )
       );
     } catch {
-      setError("Failed to reach Grace AI.");
+      setError("Failed to reach Grace.");
     } finally {
       setLoading(false);
     }
@@ -221,7 +221,7 @@ function PanelContent({
           </div>
           <div>
             <h2 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
-              Grace AI
+              Grace
             </h2>
             <p className="text-[10px] text-emerald-500">
               Online • Church Intelligence Assistant
@@ -312,7 +312,7 @@ function PanelContent({
           </button>
         </form>
         <p className="mt-2 text-center text-[10px] text-slate-400 dark:text-dark-400">
-          Grace AI • Powered by Claude &amp; live church data
+          Grace • Powered by live church data
         </p>
       </div>
     </div>

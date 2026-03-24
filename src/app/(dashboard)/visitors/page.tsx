@@ -206,11 +206,8 @@ export default async function VisitorsPage() {
             <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
           </div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
-            Grace AI Visitor Insights
+            Visitor Insights
           </h3>
-          <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
-            AI-POWERED
-          </span>
         </div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {visitorInsights.map((insight) => {

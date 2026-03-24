@@ -106,7 +106,7 @@ function formatCurrency(n: number): string {
 
 // Role-specific briefing titles and focus areas
 const ROLE_BRIEFING: Record<string, { title: string; focus: string }> = {
-  SENIOR_PASTOR: { title: "Grace AI Daily Briefing", focus: "Full church health overview" },
+  SENIOR_PASTOR: { title: "Today's Briefing", focus: "Full church health overview" },
   CAMPUS_PASTOR: { title: "Campus Briefing", focus: "Your campus at a glance" },
   YOUTH_PASTOR: { title: "Youth Ministry Briefing", focus: "Student engagement & growth" },
   KIDS_PASTOR: { title: "Kids Ministry Briefing", focus: "Children's ministry health" },
@@ -426,7 +426,7 @@ export function GraceBriefingDetails({ data }: { data: BriefingData }) {
             </h3>
           </div>
           <p className="mb-3 text-[11px] text-slate-500 dark:text-dark-300">
-            Members flagged as at-risk or disengaged by Grace AI&apos;s engagement scoring.
+            Members flagged as at-risk or disengaged by engagement scoring.
           </p>
           {data.atRiskMembers.length === 0 ? (
             <div className="flex flex-col items-center py-6 text-center">

@@ -34,7 +34,7 @@ export function GraceInsightCard() {
         </div>
         <div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
-            Grace AI Insights
+            Insights
           </h3>
           <p className="text-[11px] text-slate-500 dark:text-dark-300">
             Updated 2 hours ago
@@ -68,7 +68,7 @@ export function GraceInsightCard() {
         className="btn btn-soft mt-4 w-full gap-2 text-xs"
       >
         <Sparkles className="h-3.5 w-3.5" />
-        Ask Grace AI
+        Ask Grace
       </Link>
     </div>
   );

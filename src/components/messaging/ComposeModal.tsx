@@ -166,7 +166,7 @@ export function ComposeModal({
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-violet-500" />
             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-dark-400">
-              Grace AI Suggestions
+              Smart Suggestions
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">

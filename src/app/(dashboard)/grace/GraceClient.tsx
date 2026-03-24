@@ -49,7 +49,7 @@ export default function GraceAIPage() {
       id: "welcome",
       role: "assistant",
       content:
-        "Hello, Pastor! I'm **Grace AI**, your church intelligence assistant. I have access to your live church data — attendance, giving, member engagement, alerts, volunteer teams, small groups, and growth tracks.\n\nAsk me anything about your church, or try one of the suggested questions below.",
+        "Hello, Pastor! I'm **Grace**, your church intelligence assistant. I have access to your live church data — attendance, giving, member engagement, alerts, volunteer teams, small groups, and growth tracks.\n\nAsk me anything about your church, or try one of the suggested questions below.",
       timestamp: formatTime(),
     },
   ]);
@@ -164,7 +164,7 @@ export default function GraceAIPage() {
         )
       );
     } catch {
-      setError("Failed to reach Grace AI. Please check your connection.");
+      setError("Failed to reach Grace. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -179,7 +179,7 @@ export default function GraceAIPage() {
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-dark-50">Grace AI</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-dark-50">Grace</h1>
             <p className="text-xs text-emerald-500">Online • Church Intelligence Assistant</p>
           </div>
         </div>
@@ -260,7 +260,7 @@ export default function GraceAIPage() {
           </button>
         </form>
         <p className="mt-2 text-center text-[10px] text-slate-400 dark:text-dark-400">
-          Grace AI • Powered by Claude &amp; live church data
+          Grace • Powered by live church data
         </p>
       </div>
     </div>

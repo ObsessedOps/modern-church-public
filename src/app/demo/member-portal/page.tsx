@@ -170,7 +170,7 @@ export default function MemberPortalPage() {
                 <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
               </div>
               <span className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-                Grace AI
+                Insight
               </span>
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">{GRACE_INSIGHT.title}</h3>

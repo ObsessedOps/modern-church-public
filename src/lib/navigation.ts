@@ -42,7 +42,7 @@ export interface NavGroup {
 // Flat list for legacy compatibility (mobileNav, badge lookups, etc.)
 export const navigation: NavItem[] = [
   { id: "dashboard", label: "Command Center", path: "/", icon: LayoutDashboard },
-  { id: "grace", label: "Grace AI", path: "/grace", icon: Sparkles, color: "grace" },
+  { id: "grace", label: "Grace", path: "/grace", icon: Sparkles, color: "grace" },
   { id: "alerts", label: "Alerts", path: "/alerts", icon: Bell, color: "alert" },
   { id: "insights", label: "Insights", path: "/insights", icon: Lightbulb },
   { id: "pathways", label: "Pathways", path: "/pathways", icon: Workflow },

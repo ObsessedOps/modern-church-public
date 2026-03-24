@@ -22,12 +22,12 @@ export const metadata: Metadata = {
     template: "%s | Modern.Church",
   },
   description:
-    "AI-powered engagement insights, attendance intelligence, and ministry automation for church leaders.",
+    "Engagement insights, attendance intelligence, and ministry automation for church leaders.",
   metadataBase: new URL("https://modern.church"),
   openGraph: {
     title: "Modern.Church — Church Operations Intelligence",
     description:
-      "AI-powered engagement insights, attendance intelligence, and ministry automation for church leaders.",
+      "Engagement insights, attendance intelligence, and ministry automation for church leaders.",
     siteName: "Modern.Church",
     type: "website",
   },

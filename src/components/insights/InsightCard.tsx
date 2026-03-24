@@ -86,7 +86,7 @@ export function InsightCard({ insight, compact = false, onClick }: {
           <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-400 dark:text-dark-400">
             {insight.source === "AI_GENERATED" ? (
               <span className="flex items-center gap-1">
-                <Sparkles className="h-3 w-3" /> Grace AI
+                <Sparkles className="h-3 w-3" /> Auto-generated
               </span>
             ) : (
               <span className="flex items-center gap-1">

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { X, Keyboard } from "lucide-react";
 
 const shortcuts = [
-  { keys: ["⌘", "K"], description: "Open Grace AI" },
+  { keys: ["⌘", "K"], description: "Open Grace" },
   { keys: ["/"], description: "Global search" },
   { keys: ["?"], description: "Keyboard shortcuts" },
   { keys: ["Esc"], description: "Close panel / drawer" },

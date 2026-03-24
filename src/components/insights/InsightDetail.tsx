@@ -79,7 +79,7 @@ export function InsightDetail({ insight, onClose, onUpdate }: {
               <MessageCircle className="h-4 w-4 text-teal-600" />
             )}
             <span className="text-xs text-slate-500 dark:text-dark-400">
-              {insight.source === "AI_GENERATED" ? "Grace AI Insight" : `Shared by ${insight.author?.name ?? "Leader"}`}
+              {insight.source === "AI_GENERATED" ? "Auto-generated Insight" : `Shared by ${insight.author?.name ?? "Leader"}`}
             </span>
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700">

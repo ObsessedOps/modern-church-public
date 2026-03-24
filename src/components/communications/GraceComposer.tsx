@@ -71,7 +71,7 @@ export function GraceComposer() {
           ? match[1]
           : {
               subject: "Your AI-generated draft",
-              body: `Hi {{first_name}},\n\n[Grace AI would generate a personalized message based on your prompt: "${p}"]\n\nThis is a demo of the AI-assisted communication feature. In the full platform, Grace AI drafts messages using your church's tone, member data, and engagement context.\n\nBlessings,\nYour Church Team`,
+              body: `Hi {{first_name}},\n\n[Modern.Church would generate a personalized message based on your prompt: "${p}"]\n\nThis is a demo of the intelligent communication feature. In the full platform, Modern.Church drafts messages using your church's tone, member data, and engagement context.\n\nBlessings,\nYour Church Team`,
             }
       );
       setGenerating(false);
@@ -93,10 +93,10 @@ export function GraceComposer() {
         </div>
         <div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
-            Grace AI Composer
+            Smart Composer
           </h3>
           <p className="text-[10px] text-slate-500 dark:text-dark-300">
-            AI-powered message drafting
+            Intelligent message drafting
           </p>
         </div>
       </div>

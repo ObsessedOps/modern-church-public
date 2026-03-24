@@ -6,7 +6,7 @@ import { ChevronRight, Home } from "lucide-react";
 
 const labelMap: Record<string, string> = {
   "": "Command Center",
-  grace: "Grace AI",
+  grace: "Grace",
   alerts: "Alerts",
   members: "Members",
   groups: "Groups",

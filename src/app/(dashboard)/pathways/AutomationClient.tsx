@@ -208,7 +208,7 @@ function PathwayInsights({
       title: `${reEngagedMembers} Member${reEngagedMembers !== 1 ? "s" : ""} Touched by Multiple Pathways`,
       detail: reEngagedMembers > 0
         ? `${reEngagedMembers} member${reEngagedMembers !== 1 ? "s have" : " has"} been engaged by more than one pathway recently — a sign that your care net is catching people at multiple touchpoints. Monitor for over-communication to avoid message fatigue.`
-        : "No members have been reached by multiple pathways yet. As you activate more workflows, Grace AI will track cross-pathway engagement to prevent over-communication.",
+        : "No members have been reached by multiple pathways yet. As you activate more workflows, Modern.Church will track cross-pathway engagement to prevent over-communication.",
     },
     {
       icon: Sparkles,
@@ -216,7 +216,7 @@ function PathwayInsights({
       title: topWorkflow ? `"${topWorkflow.name}" Leading in Follow-Through` : "Step Completion Tracking",
       detail: topWorkflow
         ? `"${topWorkflow.name}" has the highest execution volume with ${topWorkflow.totalExecutions} runs across ${topWorkflow.stepsCount} steps. Pathways average ${avgSteps} step${avgSteps !== 1 ? "s" : ""} — shorter pathways tend to have better completion rates.`
-        : `Your pathways average ${avgSteps} step${avgSteps !== 1 ? "s" : ""} each. Once executions begin, Grace AI will surface which steps have the best follow-through and where members drop off.`,
+        : `Your pathways average ${avgSteps} step${avgSteps !== 1 ? "s" : ""} each. Once executions begin, Modern.Church will surface which steps have the best follow-through and where members drop off.`,
     },
   ];
 
@@ -227,11 +227,8 @@ function PathwayInsights({
           <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
         </div>
         <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
-          Grace AI Pathway Insights
+          Pathway Insights
         </h3>
-        <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
-          AI-POWERED
-        </span>
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {pathwayInsights.map((insight) => {
@@ -348,7 +345,7 @@ export function AutomationClient({ data }: AutomationClientProps) {
             Pathways
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-dark-300">
-            AI-powered workflows that turn alerts into action
+            Automated workflows that turn alerts into action
           </p>
         </div>
         {data.canManage && (
@@ -406,7 +403,7 @@ export function AutomationClient({ data }: AutomationClientProps) {
             </h2>
           </div>
           <p className="text-sm text-slate-500 dark:text-dark-300">
-            Pre-built care workflows powered by Grace AI. Activate one to start automating.
+            Pre-built care workflows with built-in templates. Activate one to start automating.
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {WORKFLOW_TEMPLATES.map((template, i) => {
