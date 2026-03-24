@@ -98,7 +98,7 @@ export default async function CongregationPage() {
       icon: Heart,
       color: "rose",
       title: `${familyPct}% Connected to Family Units`,
-      detail: `${withFamily.length} members belong to a family unit while ${soloMembers.length} are unlinked. ${soloMembers.length > 0 ? "Review solo records — some may be family members who haven't been connected yet, which affects household giving and communication accuracy." : "All members are linked to family units."}`,
+      detail: `${withFamily.length} members belong to a family unit while ${soloMembers.length} are unlinked. ${soloMembers.length > 0 ? "Review solo records — some may be family members who haven't been connected yet, which affects communication accuracy." : "All members are linked to family units."}`,
     },
     {
       icon: Footprints,

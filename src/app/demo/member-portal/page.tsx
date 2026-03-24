@@ -339,7 +339,8 @@ export default function MemberPortalPage() {
           </div>
         </GlassCard>
 
-        {/* Giving Summary */}
+        {false && (
+        /* Giving Summary */
         <GlassCard className="p-5">
           <div className="mb-3 flex items-center gap-2">
             <Gift className="h-4 w-4 text-emerald-500" />
@@ -367,6 +368,7 @@ export default function MemberPortalPage() {
             Give Now
           </button>
         </GlassCard>
+        )}
 
         {/* Family */}
         <GlassCard className="p-5">

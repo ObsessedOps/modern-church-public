@@ -161,7 +161,7 @@ export default async function AlertsPage() {
             Alerts &amp; Watchlist
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-dark-300">
-            Proactive alerts across attendance, giving, volunteers, and pastoral care.
+            Proactive alerts across attendance, volunteers, and pastoral care.
           </p>
         </div>
         {can(session, 'thresholds:view') && (

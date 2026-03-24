@@ -49,7 +49,7 @@ export default function GraceAIPage() {
       id: "welcome",
       role: "assistant",
       content:
-        "Hello, Pastor! I'm **Grace**, your church intelligence assistant. I have access to your live church data — attendance, giving, member engagement, alerts, volunteer teams, small groups, and growth tracks.\n\nAsk me anything about your church, or try one of the suggested questions below.",
+        "Hello, Pastor! I'm **Grace**, your church intelligence assistant. I have access to your live church data — attendance, member engagement, alerts, volunteer teams, small groups, and growth tracks.\n\nAsk me anything about your church, or try one of the suggested questions below.",
       timestamp: formatTime(),
     },
   ]);

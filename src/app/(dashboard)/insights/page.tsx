@@ -137,7 +137,7 @@ export default function InsightsPage() {
           typeMap.set(i.type, (typeMap.get(i.type) || 0) + 1);
         });
         const coveredTypes = typeMap.size;
-        const allKnownTypes = ["ATTENDANCE", "ENGAGEMENT", "GIVING", "VOLUNTEERS", "PASTORAL", "GROWTH"];
+        const allKnownTypes = ["ATTENDANCE", "ENGAGEMENT", "VOLUNTEERS", "PASTORAL", "GROWTH"];
         const missingTypes = allKnownTypes.filter((t) => !typeMap.has(t));
 
         const metaInsights = [

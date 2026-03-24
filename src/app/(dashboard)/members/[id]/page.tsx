@@ -174,7 +174,7 @@ function computeScoreBreakdown(member: {
 
   return [
     { label: "Attendance", detail: `${attendedWeeks.size}/12 weeks`, score: attendanceScore, max: 30 },
-    { label: "Giving", detail: `${givingMonths.size}/12 months`, score: givingScore, max: 20 },
+    // { label: "Giving", detail: `${givingMonths.size}/12 months`, score: givingScore, max: 20 },
     { label: "Groups", detail: `${Math.min(member.groupMemberships.length, 2)} active`, score: groupScore, max: 20 },
     { label: "Volunteering", detail: volunteerRaw ? "Active" : "None", score: volunteerScore, max: 15 },
     { label: "Recency", detail: daysAgo(member.lastActivityAt), score: recencyScore, max: 15 },
@@ -195,7 +195,7 @@ function generateGraceInsight(member: {
 
   if (member.engagementTier === "CHAMPION") {
     return {
-      text: `${name} is one of your most engaged members — attending consistently, giving regularly, and actively serving. Consider recognizing their faithfulness or inviting them into a leadership role.`,
+      text: `${name} is one of your most engaged members — attending consistently and actively serving. Consider recognizing their faithfulness or inviting them into a leadership role.`,
       action: "Invite to lead a group or mentor a newer member",
     };
   }
@@ -619,8 +619,8 @@ export default async function MemberDetailPage({
           )}
         </div>
 
-        {/* Giving Summary */}
-        {can(session, "giving:view") && (
+        {/* Giving Summary — hidden for now, wrap in {false && (...)} to re-enable */}
+        {false && can(session, "giving:view") && (
           <div className="card p-5">
             <div className="mb-3 flex items-center gap-2">
               <Heart className="h-4 w-4 text-emerald-500" />
