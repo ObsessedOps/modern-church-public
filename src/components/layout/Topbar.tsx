@@ -64,7 +64,7 @@ export function Topbar({ campuses = [], demoRoles, activeDemoRole = "", activeDe
             Modern.Church
           </p>
           <p className="text-[10px] text-slate-400 dark:text-dark-400">
-            Making Data Matter
+            Make Data Matter
           </p>
         </div>
       </div>
