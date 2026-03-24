@@ -209,9 +209,6 @@ export function GraceNudges({ role = "SENIOR_PASTOR" }: { role?: string }) {
         <h3 className="text-sm font-semibold text-slate-900 dark:text-dark-50">
           Recommended Actions
         </h3>
-        <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
-          AI-GENERATED
-        </span>
       </div>
 
       {nudges.map((nudge, i) => {

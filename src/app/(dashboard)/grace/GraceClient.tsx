@@ -180,7 +180,7 @@ export default function GraceAIPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-dark-50">Grace</h1>
-            <p className="text-xs text-emerald-500">Online • Church Intelligence Assistant</p>
+            <p className="text-xs text-emerald-500">Online</p>
           </div>
         </div>
       </div>

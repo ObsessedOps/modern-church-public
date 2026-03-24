@@ -70,7 +70,7 @@ export function GraceComposer() {
         match
           ? match[1]
           : {
-              subject: "Your AI-generated draft",
+              subject: "Your draft",
               body: `Hi {{first_name}},\n\n[Modern.Church would generate a personalized message based on your prompt: "${p}"]\n\nThis is a demo of the intelligent communication feature. In the full platform, Modern.Church drafts messages using your church's tone, member data, and engagement context.\n\nBlessings,\nYour Church Team`,
             }
       );

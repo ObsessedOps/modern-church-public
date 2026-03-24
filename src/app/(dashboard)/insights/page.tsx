@@ -74,7 +74,7 @@ export default function InsightsPage() {
               )}
             </h1>
             <p className="text-sm text-slate-500 dark:text-dark-300">
-              AI-generated intelligence and shared observations from your team
+              Surfaced patterns and shared observations from your team
             </p>
           </div>
         </div>
@@ -156,8 +156,8 @@ export default function InsightsPage() {
           {
             icon: Sparkles,
             color: "violet",
-            title: `AI vs Leader Balance: ${aiPercent}% AI-Generated`,
-            detail: `${aiGenerated.length} insights from Grace AI and ${leaderShared.length} shared by leaders. ${leaderShared.length >= aiGenerated.length ? "Great balance — leader observations complement AI analysis well." : leaderShared.length > 0 ? "AI is doing the heavy lifting. Encourage more leaders to share their on-the-ground observations for a fuller picture." : "All insights are AI-generated. Leader-shared observations add valuable context that AI can't capture — encourage your team to share."}`,
+            title: `Auto vs Leader Balance: ${aiPercent}% Auto-Generated`,
+            detail: `${aiGenerated.length} insights surfaced automatically and ${leaderShared.length} shared by leaders. ${leaderShared.length >= aiGenerated.length ? "Great balance — leader observations complement automated analysis well." : leaderShared.length > 0 ? "Automated insights are doing the heavy lifting. Encourage more leaders to share their on-the-ground observations for a fuller picture." : "All insights are auto-generated. Leader-shared observations add valuable context — encourage your team to share."}`,
           },
           {
             icon: Eye,
@@ -241,7 +241,7 @@ export default function InsightsPage() {
           <p className="mt-1 text-xs text-slate-400 dark:text-dark-400">
             {tab === "shared"
               ? "When team members share insights with you, they'll appear here"
-              : "Grace AI will surface insights as it analyzes your church data"}
+              : "Insights will surface as your church data is analyzed"}
           </p>
         </div>
       ) : (

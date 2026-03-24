@@ -224,7 +224,7 @@ function PanelContent({
               Grace
             </h2>
             <p className="text-[10px] text-emerald-500">
-              Online • Church Intelligence Assistant
+              Online
             </p>
           </div>
         </div>
