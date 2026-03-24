@@ -35,7 +35,7 @@ const TOUR_STEPS: TourStep[] = [
     iconBg: "bg-violet-100 dark:bg-violet-900/30",
     title: "Welcome to Modern.Church",
     description:
-      "Your church already generates incredible data every week. Attendance, groups, visitors, volunteers. Modern.Church connects it all and surfaces what matters so your whole team can act on it together.",
+      "Your team already tracks attendance, groups, visitors, and volunteers. What if all of it worked together? Modern.Church connects your platforms and surfaces what matters so your whole team can act on it.",
     preview: [
       { icon: TrendingUp, color: "text-emerald-500", label: "Attendance +4.2%", detail: "3 consecutive weeks of growth" },
       { icon: UserPlus, color: "text-blue-500", label: "32 new visitors", detail: "This week across all campuses" },
