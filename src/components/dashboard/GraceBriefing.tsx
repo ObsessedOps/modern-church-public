@@ -243,7 +243,8 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
         </button>
       </div>
 
-      {/* Highlight Cards Header with Customize */}
+      {/* Highlight Cards — hidden on mobile */}
+      <div className="hidden sm:block">
       <div className="mt-5 mb-3 flex items-center justify-between">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-dark-400">
           Highlights
@@ -358,6 +359,7 @@ export function GraceBriefingSummary({ data, role = "SENIOR_PASTOR" }: { data: B
           No cards selected. Click <strong>Customize</strong> to add highlights.
         </div>
       )}
+      </div>
     </div>
   );
 }
