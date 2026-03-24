@@ -267,15 +267,15 @@ export function ProductTour() {
 
             {/* Preview card — mini UI render */}
             <div className="hidden w-[55%] md:block" key={`preview-${step}`}>
-              <div className="h-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950/90 shadow-xl backdrop-blur-sm">
+              <div className="h-full overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-xl dark:border-dark-600 dark:bg-dark-800">
                 <div className="px-5 py-4">
                   <div className="mb-3 flex items-center justify-between">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-dark-400">
                       {current.previewLabel}
                     </p>
                     <div className="flex items-center gap-1">
-                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-[8px] text-emerald-400">Live preview</span>
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[8px] text-emerald-600 dark:text-emerald-400">Live preview</span>
                     </div>
                   </div>
                   {/* Scale down the preview slightly for a zoomed-out "exploded view" feel */}
