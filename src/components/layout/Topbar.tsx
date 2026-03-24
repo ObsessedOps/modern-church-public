@@ -61,10 +61,10 @@ export function Topbar({ campuses = [], demoRoles, activeDemoRole = "", activeDe
         </button>
         <div className="hidden lg:block">
           <p className="text-xs font-semibold text-slate-700 dark:text-dark-100">
-            Your data has always been there.
+            Making Data Matter
           </p>
           <p className="text-[10px] text-slate-400 dark:text-dark-400">
-            Modern.Church makes it matter.
+            Modern.Church
           </p>
         </div>
       </div>
