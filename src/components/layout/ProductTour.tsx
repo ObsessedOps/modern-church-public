@@ -7,8 +7,8 @@ import {
 import { cn } from "@/lib/utils";
 import { InterestModal } from "@/components/layout/InterestModal";
 import {
-  PreviewDashboard,
   PreviewBriefing,
+  PreviewTrends,
   PreviewInsights,
   PreviewPathways,
   PreviewGrace,
@@ -52,7 +52,7 @@ const TOUR_STEPS: TourStep[] = [
       "Modern.Church spots patterns across weeks and months that get lost in the day to day. Visitor retention improving. Group engagement shifting. A slow decline in a campus before it becomes a problem. Surfaced in real time, not in hindsight.",
     navHighlight: "Insights",
     previewLabel: "Patterns across your data",
-    preview: <PreviewDashboard />,
+    preview: <PreviewTrends />,
   },
   {
     id: "insights",

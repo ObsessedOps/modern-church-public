@@ -62,7 +62,77 @@ export function PreviewDashboard() {
   );
 }
 
-// ── Step 2: Daily Briefing ────────────────────────────────
+// ── Step 2: Trends You'd Miss ─────────────────────────────
+export function PreviewTrends() {
+  return (
+    <div className="space-y-2.5">
+      {/* Attendance streak */}
+      <MiniCard className="border-emerald-500/20 bg-emerald-500/5">
+        <div className="flex items-start gap-2">
+          <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-500/10">
+            <TrendingUp className="h-3 w-3 text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-[9px] font-semibold text-slate-800 dark:text-dark-100">3-Week Attendance Streak</p>
+            <p className="text-[8px] text-slate-500">Up 11% since the new sermon series launched. Downtown driving most growth.</p>
+          </div>
+        </div>
+        {/* Mini trend line */}
+        <div className="mt-2 flex items-end gap-[2px] h-6">
+          {[40, 42, 38, 44, 41, 48, 45, 52, 50, 56, 54, 60].map((h, i) => (
+            <div key={i} className="flex-1 rounded-t-sm bg-emerald-400" style={{ height: `${h}%` }} />
+          ))}
+        </div>
+      </MiniCard>
+      {/* Visitor retention */}
+      <MiniCard className="border-blue-500/20 bg-blue-500/5">
+        <div className="flex items-start gap-2">
+          <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-500/10">
+            <UserPlus className="h-3 w-3 text-blue-500" />
+          </div>
+          <div>
+            <p className="text-[9px] font-semibold text-slate-800 dark:text-dark-100">Visitor Retention Improving</p>
+            <p className="text-[8px] text-slate-500">Return rate 23% → 34% over 8 weeks. First-Time Guest pathway is working.</p>
+          </div>
+        </div>
+      </MiniCard>
+      {/* Campus comparison */}
+      <MiniCard>
+        <p className="mb-1.5 text-[9px] font-semibold text-slate-500">Campus Comparison</p>
+        <div className="space-y-1.5">
+          {[
+            { name: "Downtown", value: 487, pct: 100, trend: "+4%" },
+            { name: "Westside", value: 321, pct: 66, trend: "+7%" },
+            { name: "North", value: 159, pct: 33, trend: "+3%" },
+          ].map((c) => (
+            <div key={c.name} className="flex items-center gap-2">
+              <span className="w-14 text-[8px] font-medium text-slate-600">{c.name}</span>
+              <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-dark-600">
+                <div className="h-1.5 rounded-full bg-violet-500" style={{ width: `${c.pct}%` }} />
+              </div>
+              <span className="text-[8px] font-bold text-slate-700 w-7 text-right">{c.value}</span>
+              <span className="text-[7px] font-semibold text-emerald-500">{c.trend}</span>
+            </div>
+          ))}
+        </div>
+      </MiniCard>
+      {/* Growth projection */}
+      <MiniCard className="border-violet-500/20 bg-violet-500/5">
+        <div className="flex items-start gap-2">
+          <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-violet-500/10">
+            <Calendar className="h-3 w-3 text-violet-500" />
+          </div>
+          <div>
+            <p className="text-[9px] font-semibold text-slate-800 dark:text-dark-100">Growth Projection</p>
+            <p className="text-[8px] text-slate-500">At current trajectory, you&apos;ll cross 500 weekly attendance by June.</p>
+          </div>
+        </div>
+      </MiniCard>
+    </div>
+  );
+}
+
+// ── Step 2b: Daily Briefing ───────────────────────────────
 export function PreviewBriefing() {
   return (
     <div className="space-y-2.5">
