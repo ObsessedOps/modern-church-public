@@ -84,7 +84,7 @@ export function AppShell({ children, campuses = [], demoRoles, activeDemoRole = 
         </div>
       </main>
       <BottomTabBar />
-      <GraceFab />
+      {/* <GraceFab /> — hidden for now */}
       <GracePanel />
       <ToastContainer />
       <SearchOverlay />
