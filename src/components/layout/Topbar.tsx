@@ -64,7 +64,7 @@ export function Topbar({ campuses = [], demoRoles, activeDemoRole = "", activeDe
             Your data has always been there.
           </p>
           <p className="text-[10px] text-slate-400 dark:text-dark-400">
-            Modern.Church makes it useful.
+            Modern.Church makes it matter.
           </p>
         </div>
       </div>
