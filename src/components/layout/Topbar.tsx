@@ -61,10 +61,10 @@ export function Topbar({ campuses = [], demoRoles, activeDemoRole = "", activeDe
         </button>
         <div className="hidden lg:block">
           <p className="text-xs font-semibold text-slate-700 dark:text-dark-100">
-            Making Data Matter
+            Modern.Church
           </p>
           <p className="text-[10px] text-slate-400 dark:text-dark-400">
-            Modern.Church
+            Making Data Matter
           </p>
         </div>
       </div>
